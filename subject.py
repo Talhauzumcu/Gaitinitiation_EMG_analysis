@@ -2,95 +2,8 @@ import numpy as np
 import scipy.io
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
-
-
-@dataclass
-class MarkerData:
-    """Data class for 3D marker trajectories."""
-    name: str
-    x: np.ndarray
-    y: np.ndarray
-    z: np.ndarray
-    sampling_rate: float = 100.0
-    
-    def get_trajectory(self) -> np.ndarray:
-        """Returns marker trajectory as (n_samples, 3) array."""
-        return np.column_stack([self.x, self.y, self.z])
-    
-    def get_magnitude(self) -> np.ndarray:
-        """Returns magnitude of 3D position."""
-        return np.sqrt(self.x**2 + self.y**2 + self.z**2)
-
-    
-
-@dataclass
-class AnalogData:
-    """Data class for analog signals (EMG, force plates, etc.)."""
-    name: str
-    data: np.ndarray
-    sampling_rate: float = 1000.0
-    unit: str = ""
-    
-    def get_data(self) -> np.ndarray:
-        """Returns the analog signal data."""
-        return self.data
-
-
-@dataclass
-class ForceData:
-    """Data class for force plate data."""
-    name: str
-    force: np.ndarray  # (3, n_samples) - Fx, Fy, Fz
-    moment: np.ndarray  # (3, n_samples) - Mx, My, Mz
-    cop: np.ndarray  # (3, n_samples) - Center of Pressure x, y, z
-    sampling_rate: float = 1000.0
-    
-    def __post_init__(self):
-        self.transpose_data()
-        
-    def get_force_magnitude(self) -> np.ndarray:
-        """Returns magnitude of force vector."""
-        return np.sqrt(np.sum(self.force**2, axis=0))
-
-    def transpose_data(self) -> None:
-        """Transpose force, moment, and cop data to shape (n_samples, 3)."""
-        self.force = self.force.T
-        self.moment = self.moment.T
-        self.cop = self.cop.T
-
-@dataclass
-class TrialData:
-    """Data class for a single trial."""
-    trial_name: str
-    markers: Dict[str, MarkerData] = field(default_factory=dict)
-    analogs: Dict[str, AnalogData] = field(default_factory=dict)
-    forces: Dict[str, ForceData] = field(default_factory=dict)
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    
-    def get_marker_names(self) -> List[str]:
-        """Returns list of marker names."""
-        return list(self.markers.keys())
-    
-    def get_analog_names(self) -> List[str]:
-        """Returns list of analog channel names."""
-        return list(self.analogs.keys())
-    
-    def get_force_names(self) -> List[str]:
-        """Returns list of force plate names."""
-        return list(self.forces.keys())
-    
-    def get_marker(self, name: str) -> Optional[MarkerData]:
-        """Get marker data by name."""
-        return self.markers.get(name)
-    
-    def get_analog(self, name: str) -> Optional[AnalogData]:
-        """Get analog data by name."""
-        return self.analogs.get(name)
-    
-    def get_force(self, name: str) -> Optional[ForceData]:
-        """Get force data by name."""
-        return self.forces.get(name)
-
+from containers import *
+import os
 
 class Subject:
     """Class for managing subject data from QTM exports."""
@@ -99,7 +12,7 @@ class Subject:
         self.subject_id = subject_id
         self.trials: Dict[str, TrialData] = {}
         
-    def load_mat_file(self, filepath: str) -> TrialData:
+    def load_qtm_data(self, filepath: str) -> TrialData:
         """
         Load QTM MAT file and parse into structured format.
         
@@ -126,9 +39,26 @@ class Subject:
         
         return trial
     
+    def load_event_data(self, filepath: str) -> None:
+        mat_data = scipy.io.loadmat(filepath)
+        events = mat_data['events']
+        for trial in self.trials.values():
+            subject_field = f"Subj_{self.subject_id}"
+            trial_name = f"qtm_{trial.trial_name}"
+            trial_event_data = events[subject_field][0,0][trial_name][0,0]
+            event_names = trial_event_data.dtype.names
+            for event_name in event_names:
+                try:
+                    if event_name == 'stopsignal':
+                        trial.events[event_name] = trial_event_data[event_name][0,0][0,1]
+                    else:
+                        trial.events[event_name] = trial_event_data[event_name][0,0][0,0]
+                except Exception as e:
+                    print(f"Warning: Could not load event '{event_name}' for subject '{self.subject_id}' for trial '{trial_name}': {e}")
+
     def _extract_trial_name(self, filepath: str, mat_data: Dict) -> str:
         """Extract trial name from filepath or mat data."""
-        import os
+       
         # Try to get from filename
         filename = os.path.basename(filepath)
         trial_name = filename.replace('.mat', '')
@@ -704,12 +634,20 @@ class Subject:
         if trial is None:
             print(f"Trial '{trial_name}' not found.")
             return
-        
+    
         print(f"Trial: {trial.trial_name}")
         print(f"Markers ({len(trial.markers)}):", trial.get_marker_names()[:10], "..." if len(trial.markers) > 10 else "")
         print(f"Analogs ({len(trial.analogs)}):", trial.get_analog_names()[:10], "..." if len(trial.analogs) > 10 else "")
         print(f"Force Plates ({len(trial.forces)}):", trial.get_force_names())
         print(f"Metadata: {list(trial.metadata.keys())}")
+        
+    def get_trial_by_idx(self, index: int) -> Optional[TrialData]:
+        """Get trial data by index."""
+        trial_names = self.get_trial_names()
+        if index < 0 or index >= len(trial_names):
+            return None
+        trial_name = trial_names[index]
+        return self.trials[trial_name]
     
     def __repr__(self) -> str:
         return f"Subject(id='{self.subject_id}', trials={len(self.trials)})"

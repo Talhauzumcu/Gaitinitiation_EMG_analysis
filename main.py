@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 # %%
 qtm_path = "D:\Freelance_data\Gerontology_dshs\gaitinitiation\qtm_output"
+events_path = "D:\Freelance_data\Gerontology_dshs\gaitinitiation\events\events.mat"
 subjects_no_list = os.listdir(qtm_path)
 subjects_no_list = ['02']
 # %%
@@ -18,9 +19,7 @@ for subject_no in subjects_no_list:
     for trial_file in trial_files:
         # Load a MAT file
         filepath = os.path.join(qtm_path, subject_no, trial_file)
-
-# %%
-# Now load the trial
-trial = subject.load_mat_file(filepath)
-
+        subject.load_qtm_data(filepath)
+    
+    subject.load_event_data(events_path)
 # %%
