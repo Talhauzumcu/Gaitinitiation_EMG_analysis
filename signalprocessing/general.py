@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.signal import decimate
+from scipy.signal import decimate,hilbert
 from scipy import interpolate as interp
 
 def moving_avg(sig1: np.ndarray, window_size: int, mode: str = 'same') -> np.ndarray:
@@ -61,8 +61,8 @@ def envelope(sig1: np.ndarray) -> np.ndarray:
     Returns:
         np.ndarray: Signal envelope.
     """
-    analytic = np.abs(np.fft.hilbert(sig1))
-    return analytic
+    envelope = np.abs(hilbert(sig1))
+    return envelope
 
 def remove_dc(sig1: np.ndarray) -> np.ndarray:
     """
