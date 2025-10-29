@@ -11,6 +11,7 @@ PSY_PATH = "D:\Freelance_data\Gerontology_dshs\gaitinitiation\psytoolb_output"
 EVENTS_PATH = "D:\Freelance_data\Gerontology_dshs\gaitinitiation\events\events.mat"
 SUCCESS_FILE = "successful_trials.json"
 EARLY_FILE = "early_trials.json"
+EMG_CHANNELS = np.array([33,34,35,38,39,40])
 subjects_no_list = os.listdir(QTM_PATH)
 subjects_no_list = ['02']
 # %%
@@ -25,4 +26,14 @@ for subject_no in subjects_no_list:
     subject.load_event_data(EVENTS_PATH)
     subject.set_trial_success(SUCCESS_FILE)
     subject.set_trial_latency(EARLY_FILE)
+    subject.set_EMG_data(EMG_CHANNELS)
+
+# %% Start EMG analysis 
+
+marker_fs = 200
+analog_fs = 2000
+trial_1 = subject.get_trial_by_idx(0)
+
+for key,val in trial_1.analogs.items():
+    print(f"Analog Channel: {key}, Channel: {val.channel}, name: {val.name}, Sampling Rate: {val.sampling_rate}, Data shape: {val.data.shape}")
 # %%

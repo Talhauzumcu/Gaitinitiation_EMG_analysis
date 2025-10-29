@@ -19,8 +19,6 @@ class MarkerData:
         """Returns magnitude of 3D position."""
         return np.sqrt(self.x**2 + self.y**2 + self.z**2)
 
-    
-
 @dataclass
 class AnalogData:
     """Data class for analog signals (EMG, force plates, etc.)."""
@@ -28,11 +26,11 @@ class AnalogData:
     data: np.ndarray
     sampling_rate: float = 1000.0
     unit: str = ""
-    
+    channel: Optional[int] = None
+
     def get_data(self) -> np.ndarray:
         """Returns the analog signal data."""
         return self.data
-
 
 @dataclass
 class ForceData:
@@ -41,7 +39,7 @@ class ForceData:
     force: np.ndarray  # (3, n_samples) - Fx, Fy, Fz
     moment: np.ndarray  # (3, n_samples) - Mx, My, Mz
     cop: np.ndarray  # (3, n_samples) - Center of Pressure x, y, z
-    sampling_rate: float = 1000.0
+    sampling_rate: float = 2000.0
     
     def __post_init__(self):
         self.transpose_data()
@@ -57,12 +55,26 @@ class ForceData:
         self.cop = self.cop.T
 
 @dataclass
+class EMGData:
+    """Data class for EMG signals."""
+    name: str
+    data: np.ndarray
+    sampling_rate: float = 2000.0
+    unit: str = "mV"
+    channel: Optional[int] = None
+    
+    def get_data(self) -> np.ndarray:
+        """Returns the EMG signal data."""
+        return self.data
+        
+@dataclass
 class TrialData:
     """Data class for a single trial."""
     trial_name: str
     markers: Dict[str, MarkerData] = field(default_factory=dict)
     analogs: Dict[str, AnalogData] = field(default_factory=dict)
     forces: Dict[str, ForceData] = field(default_factory=dict)
+    emgs: Dict[str, EMGData] = field(default_factory=dict)
     metadata: Dict[str, Any] = field(default_factory=dict)
     events: Dict[str, int] = field(default_factory=dict)
     success: Optional[bool] = None # For storing trial success
@@ -87,6 +99,24 @@ class TrialData:
     def get_analog(self, name: str) -> Optional[AnalogData]:
         """Get analog data by name."""
         return self.analogs.get(name)
+    
+    def get_analog_by_channel(self, channel: int) -> Optional[AnalogData]:
+        """Get analog data by channel number."""
+        for analog in self.analogs.values():
+            if analog.channel == channel:
+                return analog
+        return None
+    
+    def get_emg(self, name: str) -> Optional[EMGData]:
+        """Get EMG data by name."""
+        return self.emgs.get(name)
+    
+    def get_emg_by_channel(self, channel: int) -> Optional[EMGData]:
+        """Get EMG data by channel number."""
+        for emg in self.emgs.values():
+            if emg.channel == channel:
+                return emg
+        return None
     
     def get_force(self, name: str) -> Optional[ForceData]:
         """Get force data by name."""

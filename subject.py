@@ -101,6 +101,21 @@ class Subject:
         
         return trial
     
+    def set_EMG_data(self, EMGChannels):
+        """Set EMG data for the subject's trials based on specified channels from the analog data."""
+        for trial in self.trials.values():
+            for channel in EMGChannels:
+                analog = trial.get_analog_by_channel(channel)
+                if analog is not None:
+                    emg = EMGData(
+                        name=analog.name,
+                        data=analog.data,
+                        sampling_rate=analog.sampling_rate,
+                        unit=analog.unit,
+                        channel=analog.channel
+                    )
+                    trial.emgs[analog.name] = emg
+    
     def load_event_data(self, filepath: str) -> None:
         mat_data = scipy.io.loadmat(filepath)
         events = mat_data['events']
@@ -112,9 +127,9 @@ class Subject:
             for event_name in event_names:
                 try:
                     if event_name == 'stopsignal':
-                        trial.events[event_name] = trial_event_data[event_name][0,0][0,1]
+                        trial.events[event_name] = int(trial_event_data[event_name][0,0][0,1])
                     else:
-                        trial.events[event_name] = trial_event_data[event_name][0,0][0,0]
+                        trial.events[event_name] = int(trial_event_data[event_name][0,0][0,0])
                 except Exception as e:
                     print(f"Warning: Could not load event '{event_name}' for subject '{self.subject_id}' for trial '{trial_name}': {e}")
             
@@ -309,7 +324,8 @@ class Subject:
                     analog = AnalogData(
                         name=name,
                         data=data_array[i, :],
-                        sampling_rate=frequency
+                        sampling_rate=frequency,
+                        channel=int(channel_numbers[i]) if i < len(channel_numbers) else None
                     )
                     trial.analogs[name] = analog
                     
