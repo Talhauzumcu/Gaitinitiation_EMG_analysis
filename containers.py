@@ -65,6 +65,8 @@ class TrialData:
     forces: Dict[str, ForceData] = field(default_factory=dict)
     metadata: Dict[str, Any] = field(default_factory=dict)
     events: Dict[str, int] = field(default_factory=dict)
+    success: Optional[bool] = None # For storing trial success
+    early: Optional[bool] = None  # For storing trial latency information
     
     def get_marker_names(self) -> List[str]:
         """Returns list of marker names."""

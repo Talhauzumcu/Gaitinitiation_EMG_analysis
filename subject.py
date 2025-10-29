@@ -4,6 +4,7 @@ from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from containers import *
 import os
+import json
 
 class Subject:
     """Class for managing subject data from QTM exports."""
@@ -12,6 +13,67 @@ class Subject:
         self.subject_id = subject_id
         self.trials: Dict[str, TrialData] = {}
         
+    def get_successful_trials(self) -> List[str]:
+        """Get list of successful trial names."""
+        return [name for name, trial in self.trials.items() if trial.success]
+    
+    def get_early_trials(self) -> List[str]:
+        """Get list of early trial names."""
+        return [name for name, trial in self.trials.items() if trial.early]
+    
+    def get_late_trials(self) -> List[str]:
+        """Get list of late trial names."""
+        return [name for name, trial in self.trials.items() if not trial.early]
+    
+    def get_unsuccessful_trials(self) -> List[str]:
+        """Get list of unsuccessful trial names."""
+        return [name for name, trial in self.trials.items() if not trial.success]
+    
+    def get_trial(self, trial_name: str) -> Optional[TrialData]:
+        """Get trial data by name."""
+        return self.trials.get(trial_name)
+    
+    def get_trial_names(self) -> List[str]:
+        """Get list of all trial names."""
+        return list(self.trials.keys())
+    
+    def print_trial_info(self, trial_name: str) -> None:
+        """Print information about a trial."""
+        trial = self.get_trial(trial_name)
+        if trial is None:
+            print(f"Trial '{trial_name}' not found.")
+            return
+    
+        print(f"Trial: {trial.trial_name}")
+        print(f"Markers ({len(trial.markers)}):", trial.get_marker_names()[:10], "..." if len(trial.markers) > 10 else "")
+        print(f"Analogs ({len(trial.analogs)}):", trial.get_analog_names()[:10], "..." if len(trial.analogs) > 10 else "")
+        print(f"Force Plates ({len(trial.forces)}):", trial.get_force_names())
+        print(f"Metadata: {list(trial.metadata.keys())}")
+        
+    def get_trial_by_idx(self, index: int) -> Optional[TrialData]:
+        """Get trial data by index."""
+        trial_names = self.get_trial_names()
+        if index < 0 or index >= len(trial_names):
+            return None
+        trial_name = trial_names[index]
+        return self.trials[trial_name]
+    
+    def set_trial_success(self, success_file: str) -> None:
+        """Set trial success flags based on provided success list."""
+        with open(success_file, 'r') as f:
+            success_list = json.load(f)
+        for trial_name, trial in self.trials.items():
+            trial.success = trial_name in success_list
+
+    def set_trial_latency(self, early_file: str) -> None:
+        """Set trial latency based on provided latency data."""
+        with open(early_file, 'r') as f:
+            early_data = json.load(f)
+        for trial_name, trial in self.trials.items():
+            #There are inconsistencies in trial naming in the early trials file
+            trial.early = trial_name in early_data or trial_name.replace('0_', '') in early_data or \
+                            trial_name.replace('1_', '') in early_data
+
     def load_qtm_data(self, filepath: str) -> TrialData:
         """
         Load QTM MAT file and parse into structured format.
@@ -55,7 +117,7 @@ class Subject:
                         trial.events[event_name] = trial_event_data[event_name][0,0][0,0]
                 except Exception as e:
                     print(f"Warning: Could not load event '{event_name}' for subject '{self.subject_id}' for trial '{trial_name}': {e}")
-
+            
     def _extract_trial_name(self, filepath: str, mat_data: Dict) -> str:
         """Extract trial name from filepath or mat data."""
        
@@ -179,7 +241,7 @@ class Subject:
                         # Get frame rate from metadata if available
                         sampling_rate = trial.metadata.get('FrameRate', 100.0)
                         
-                        print(f"Extracting {n_markers} markers with {n_frames} frames")
+                        # print(f"Extracting {n_markers} markers with {n_frames} frames")
                         
                         for i in range(n_markers):
                             name = labels[i] if i < len(labels) else f"Marker_{i+1}"
@@ -192,7 +254,7 @@ class Subject:
                             )
                             trial.markers[name] = marker
                         
-                        print(f"Successfully extracted {len(trial.markers)} markers")
+                        # print(f"Successfully extracted {len(trial.markers)} markers")
                                 
         except (IndexError, KeyError, AttributeError) as e:
             print(f"Warning: Error extracting trajectories: {e}")
@@ -328,7 +390,7 @@ class Subject:
                             )
                             trial.forces[plate_name] = force_obj
                 
-                print(f"Successfully extracted {len(trial.forces)} force plates")
+                # print(f"Successfully extracted {len(trial.forces)} force plates")
                 
         except (IndexError, KeyError, AttributeError) as e:
             print(f"Warning: Error extracting force data: {e}")
@@ -619,35 +681,6 @@ class Subject:
                             else:
                                 print()
                 print()
-    
-    def get_trial(self, trial_name: str) -> Optional[TrialData]:
-        """Get trial data by name."""
-        return self.trials.get(trial_name)
-    
-    def get_trial_names(self) -> List[str]:
-        """Get list of all trial names."""
-        return list(self.trials.keys())
-    
-    def print_trial_info(self, trial_name: str) -> None:
-        """Print information about a trial."""
-        trial = self.get_trial(trial_name)
-        if trial is None:
-            print(f"Trial '{trial_name}' not found.")
-            return
-    
-        print(f"Trial: {trial.trial_name}")
-        print(f"Markers ({len(trial.markers)}):", trial.get_marker_names()[:10], "..." if len(trial.markers) > 10 else "")
-        print(f"Analogs ({len(trial.analogs)}):", trial.get_analog_names()[:10], "..." if len(trial.analogs) > 10 else "")
-        print(f"Force Plates ({len(trial.forces)}):", trial.get_force_names())
-        print(f"Metadata: {list(trial.metadata.keys())}")
         
-    def get_trial_by_idx(self, index: int) -> Optional[TrialData]:
-        """Get trial data by index."""
-        trial_names = self.get_trial_names()
-        if index < 0 or index >= len(trial_names):
-            return None
-        trial_name = trial_names[index]
-        return self.trials[trial_name]
-    
     def __repr__(self) -> str:
         return f"Subject(id='{self.subject_id}', trials={len(self.trials)})"
