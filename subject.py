@@ -3,6 +3,7 @@ import scipy.io
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from containers import *
+from scipy.signal import find_peaks
 import os
 import json
 
@@ -100,7 +101,7 @@ class Subject:
         self.trials[trial_name] = trial
         
         return trial
-    
+            
     def set_EMG_data(self, EMGChannels):
         """Set EMG data for the subject's trials based on specified channels from the analog data."""
         for trial in self.trials.values():

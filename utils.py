@@ -1,6 +1,9 @@
 import os
 import json
 import scipy.io
+import pickle
+from pathlib import Path
+
 def create_success_list(filepath):
     """Creates an array containing the successful trial names in a given directory."""
     success_list = []
@@ -46,6 +49,49 @@ def create_early_list(filepath):
             if latency == 10 or latency == 5:
                 early_list.append(std_trial_name)
     return early_list
+
+def save_subjects_pickle(subjects, filename="subjects_cache.pkl"):
+    """
+    Save subjects list to a pickle file for faster loading.
+    
+    Parameters:
+    -----------
+    subjects : list
+        List of Subject objects to save
+    filename : str
+        Name of the pickle file (default: "subjects_cache.pkl")
+    """
+    pickle_path = Path(filename)
+    print(f"Saving {len(subjects)} subjects to {pickle_path}...")
+    with open(pickle_path, 'wb') as f:
+        pickle.dump(subjects, f)
+    print(f"Subjects successfully saved to {pickle_path}")
+    print(f"File size: {pickle_path.stat().st_size / (1024*1024):.2f} MB")
+
+def load_subjects_pickle(filename="subjects_cache.pkl"):
+    """
+    Load subjects list from a pickle file.
+    
+    Parameters:
+    -----------
+    filename : str
+        Name of the pickle file to load (default: "subjects_cache.pkl")
+    
+    Returns:
+    --------
+    list
+        List of Subject objects, or None if file doesn't exist
+    """
+    pickle_path = Path(filename)
+    if not pickle_path.exists():
+        print(f"Pickle file '{pickle_path}' not found. Subjects need to be loaded from source.")
+        return None
+    
+    print(f"Loading subjects from {pickle_path}...")
+    with open(pickle_path, 'rb') as f:
+        subjects = pickle.load(f)
+    print(f"Successfully loaded {len(subjects)} subjects")
+    return subjects
 
 if __name__ == "__main__":
     # root_path = r"C:\Users\talha\OneDrive\Belgeler\GitHub\MarginOfStability\margin_of_stability\results\successful"

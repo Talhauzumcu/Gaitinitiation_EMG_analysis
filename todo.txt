@@ -1,0 +1,38 @@
+EMG normalization snipets
+	Pre-Green - Front COP peak
+	
+For iEMG
+	Pre green to cop onset
+	cop onset - stop perceived
+	stop perceived - post peak
+
+	post peak - front peak
+
+Co contraction
+	Pre - frontal peak
+
+Normalization:
+	Nogo within trial peaks
+	Just the max
+
+
+0 - MOS
+1 - EMG
+2 - opencv realtime go nogo
+3 - VR??
+
+
+##STEPS
+Rectify
+No bandpass?
+Envelope with 6hz low pass
+normalize amplitude
+AMPLITUDE NORMALIZATION:
+	- Normalize to a single peak in each trial? #DOING THIS FOR NOW (Start looking from green)
+	- Normalize to a 50ms moving window in each trial? 
+
+
+Analysis results:
+	- Average peaks (average of first ten peaks within an analysis period)
+	- Amplitude mean # This may be different from iEMG because it is time independent
+	- iEMG results for different sections

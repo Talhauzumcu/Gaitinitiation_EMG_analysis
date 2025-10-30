@@ -125,3 +125,6 @@ class TrialData:
     def get_event(self, name: str) -> Optional[int]:
         """Get event time by name."""
         return self.events.get(name)
+    
+    def __repr__(self) -> str:
+        return f"TrialData(trial_name={self.trial_name}, markers={list(self.markers.keys())}, analogs={list(self.analogs.keys())}, forces={list(self.forces.keys())}, emgs={list(self.emgs.keys())})"
