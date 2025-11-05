@@ -5,3 +5,7 @@ New Text Document (1).txt
 test.py
 outputs/
 subjects_cache.pkl
+emg_on_off_plots/
+muscle_activation_plots/
+outputs/
+emg_analysis_results.csv

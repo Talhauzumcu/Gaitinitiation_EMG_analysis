@@ -1,12 +1,26 @@
 EMG normalization snipets
 	Pre-Green - Front COP peak
 	
-For iEMG
+For iEMG DONE
 	Pre green to cop onset
 	cop onset - stop perceived
 	stop perceived - post peak
-
 	post peak - front peak
+	cop onset - postpeak
+
+For amplitude mean DONE
+	Pre green to cop onset
+	cop onset - stop perceived
+	stop perceived - post peak
+	post peak - front peak
+	cop onset - postpeak
+
+For peak averages DONE
+	Pre green to cop onset
+	cop onset - stop perceived
+	stop perceived - post peak
+	post peak - front peak
+	cop onset - postpeak
 
 Co contraction
 	Pre - frontal peak
