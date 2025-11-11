@@ -9,3 +9,5 @@ emg_on_off_plots/
 muscle_activation_plots/
 outputs/
 emg_analysis_results.csv
+.python-version
+.venv/

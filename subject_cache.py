@@ -7,10 +7,10 @@ import numpy as np
 import os
 from subject import Subject
 from utils import *
-
-QTM_PATH = "D:\Freelance_data\Gerontology_dshs\gaitinitiation\qtm_output"
-PSY_PATH = "D:\Freelance_data\Gerontology_dshs\gaitinitiation\psytoolb_output"
-EVENTS_PATH = "D:\Freelance_data\Gerontology_dshs\gaitinitiation\events\events.mat"
+from pathlib import Path
+QTM_PATH = Path("/mnt/Data/Freelance_data/Gerontology_dshs/gaitinitiation/qtm_output")
+PSY_PATH = Path("/mnt/Data/Freelance_data/Gerontology_dshs/gaitinitiation/psytoolb_output")
+EVENTS_PATH = Path("/mnt/Data/Freelance_data/Gerontology_dshs/gaitinitiation/events/events.mat")
 SUCCESS_FILE = "successful_trials.json"
 EARLY_FILE = "early_trials.json"
 PICKLE_FILE = "subjects_cache.pkl"  # Pickle cache file
