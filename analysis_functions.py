@@ -214,3 +214,60 @@ def get_cocontraction(emg1, emg2):
 
 
 # %%
+def plot_emg_cocontraction(trial, emg1, emg2, slice_idxs, plot_start_time, plot_end_time, fs, cocontraction_pct):
+    
+    emg1_data = emg1.get_processed_data()
+    emg2_data = emg2.get_processed_data()
+    emg1_name = emg1.name
+    emg2_name = emg2.name
+
+    emg1_section = emg1_data[slice_idxs[0]:slice_idxs[1]]
+    emg2_section = emg2_data[slice_idxs[0]:slice_idxs[1]]
+    overlap = np.minimum(emg1_section, emg2_section)
+
+    # Create time vector for the segment
+    time_vector = (np.arange(len(emg1_data)) / fs)
+    plot_slice_start = int(plot_start_time * fs)
+    plot_slice_end = int(plot_end_time * fs)
+    time_vector = time_vector[plot_slice_start:plot_slice_end]
+    emg1_plot = emg1_data[plot_slice_start:plot_slice_end]
+    emg2_plot = emg2_data[plot_slice_start:plot_slice_end]
+    # Create the plot
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    # Plot both EMG signals
+    ax.plot(time_vector, emg1_plot, label=emg1_name, color='blue', linewidth=0.5)
+    ax.plot(time_vector, emg2_plot, label=emg2_name, color='red', linewidth=0.5)
+
+    # Fill the overlap area
+    ax.fill_between(time_vector[slice_idxs[0]-plot_slice_start:slice_idxs[1]-plot_slice_start], 0, overlap, color='grey', alpha=0.4, label='Cocontraction Area')
+
+    # Add event markers (adjusted to segment time)
+    green_event = trial.events['green']
+    cop_onset_event = trial.events['CoP_onset']
+    post_peak_event = trial.events['post_peak']
+    frontal_peak_event = trial.events['frontal_peak']
+
+    ax.axvline(green_event / fs, color='green', linestyle='--', alpha=0.7, label='Green Cue')
+    ax.axvline(cop_onset_event / fs, color='blue', linestyle='--', alpha=0.7, label='CoP Onset')
+    ax.axvline(post_peak_event / fs, color='orange', linestyle='--', alpha=0.7, label='Post Peak')
+    ax.axvline(frontal_peak_event / fs, color='brown', linestyle='--', alpha=0.7, label='Frontal Peak')
+
+    # Add cocontraction percentage text
+    ax.text(0.98, 0.95, f'Cocontraction: {cocontraction_pct:.1f}%', 
+            transform=ax.transAxes, fontsize=14, fontweight='bold',
+            verticalalignment='top', horizontalalignment='right',
+            bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+
+    # Labels and formatting
+    ax.set_xlabel('Time (s)', fontsize=12)
+    ax.set_ylabel('Normalized EMG Amplitude', fontsize=12)
+    ax.set_title(f'EMG Cocontraction - Trial {trial.trial_name}', 
+                fontsize=14, fontweight='bold')
+    ax.legend(loc='upper left', fontsize=10)
+    ax.grid(True, alpha=0.3)
+    ax.set_ylim([0, max(np.max(emg1_plot), np.max(emg2_plot)) * 1.1])
+
+    plt.tight_layout()
+    plt.show()
+# %%

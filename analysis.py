@@ -7,18 +7,13 @@ from scipy.signal import find_peaks
 import os
 from pathlib import Path
 from analysis_functions import * 
-#import matplotlib
-#matplotlib.use('Agg')  # Use non-interactive backend to prevent figures from opening
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend to prevent figures from opening
 
 #%%
 #Load subject data from cache. If the cache is not yet prepared, run the subject_cache.py script first.
 subjects = load_subjects_pickle("subjects_cache.pkl")
 
-#%% Add the frontal peak event to the events if necessary
-for subject in subjects:
-    for name, trial in subject.trials.items():
-        frontal_peak = find_frontal_peak(trial)
-        subject.trials[name].events['frontal_peak'] = frontal_peak
 # %% Start EMG analysis 
 marker_fs = 200
 analog_fs = 2000
@@ -167,18 +162,33 @@ for subject in subjects:
         line = f"{subject.subject_id}, {trial.trial_name} "
         for pair in cocontraction_pairs:
             emg1_name, emg2_name = pair
-            emg1 = trial.emgs.get(emg1_name).data
-            emg2 = trial.emgs.get(emg2_name).data
+            emg1 = trial.emgs.get(emg1_name)
+            emg2 = trial.emgs.get(emg2_name)
             try: 
                 start_idx = trial.events['green'] - idx_buffer
                 end_idx = trial.events['frontal_peak']
-                emg1_segment = emg1[start_idx:end_idx]
-                emg2_segment = emg2[start_idx:end_idx]
+                emg1_segment = emg1.data[start_idx:end_idx]
+                emg2_segment = emg2.data[start_idx:end_idx]
                 cocontraction_pct = get_cocontraction(emg1_segment, emg2_segment)
                 line += f",{cocontraction_pct:.1f} "
                 print(f"Subject {subject.subject_id}, Trial {trial.trial_name}, "
                       f"Interval green-frontal_peak, Cocontraction between {emg1_name} "
                       f"and {emg2_name}: {cocontraction_pct:.2f}%")
+
+                #Create and save the plot
+                plot_emg_cocontraction(trial,
+                                        emg1, 
+                                        emg2, 
+                                        slice_idxs=(start_idx, end_idx), 
+                                        plot_start_time=(start_idx/analog_fs - .5),
+                                        plot_end_time=(end_idx/analog_fs + .5), 
+                                        fs=analog_fs, 
+                                        cocontraction_pct=cocontraction_pct)
+                #Save the plot
+                plot_filename = f"{subject.subject_id}_{trial.trial_name}_{emg1_name}_{emg2_name}_cocontraction.png"
+                plot_path = output_dir / plot_filename
+                plt.savefig(plot_path)
+                plt.close()
 
             except Exception as e:
                 line += ",nan "
@@ -197,4 +207,5 @@ for subject in subjects:
                 csvwriter.writerow(header_parts)
             line_parts = line.strip().split(',')
             csvwriter.writerow(line_parts)
+
 # %%

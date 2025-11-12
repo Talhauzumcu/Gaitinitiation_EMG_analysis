@@ -8,6 +8,8 @@ import os
 from subject import Subject
 from utils import *
 from pathlib import Path
+from analysis_functions import find_frontal_peak
+
 QTM_PATH = Path("/mnt/Data/Freelance_data/Gerontology_dshs/gaitinitiation/qtm_output")
 PSY_PATH = Path("/mnt/Data/Freelance_data/Gerontology_dshs/gaitinitiation/psytoolb_output")
 EVENTS_PATH = Path("/mnt/Data/Freelance_data/Gerontology_dshs/gaitinitiation/events/events.mat")
@@ -34,6 +36,12 @@ for subject_no in subjects_no_list:
     subject.set_trial_latency(EARLY_FILE)
     subject.set_EMG_data(EMG_CHANNELS)
     subjects.append(subject)
+
+# Add the frontal peak event to the events if necessary
+for subject in subjects:
+    for name, trial in subject.trials.items():
+        frontal_peak = find_frontal_peak(trial)
+        subject.trials[name].events['frontal_peak'] = frontal_peak
 
 # Save subjects to pickle for faster loading next time
 save_subjects_pickle(subjects, PICKLE_FILE)

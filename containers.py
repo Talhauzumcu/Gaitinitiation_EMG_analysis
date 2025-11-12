@@ -1,6 +1,8 @@
 import numpy as np
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
+import signalprocessing as sp
+from analysis_functions import normalize_emg
 
 @dataclass
 class MarkerData:
@@ -63,10 +65,25 @@ class EMGData:
     unit: str = "mV"
     channel: Optional[int] = None
     
-    def get_data(self) -> np.ndarray:
+    def __post_init__(self):
+        self.processed_data = self.process_emg()
+
+    def get_raw_data(self) -> np.ndarray:
         """Returns the EMG signal data."""
         return self.data
         
+    def process_emg(self) -> np.ndarray:
+        self.data[np.isnan(self.data)] = 0  # Remove NaNs
+        rectified_signal = np.power(self.data, 2)
+        smoothed_signal = sp.filters.low_pass(rectified_signal, cutoff_freq=6, sampling_rate=2000, order=2)
+        normalized_signal = normalize_emg(smoothed_signal)
+        self.processed_data = normalized_signal
+        return normalized_signal
+    
+    def get_processed_data(self) -> np.ndarray:
+        """Returns the processed EMG signal data."""
+        return self.processed_data
+    
 @dataclass
 class TrialData:
     """Data class for a single trial."""

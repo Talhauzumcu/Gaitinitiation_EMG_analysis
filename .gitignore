@@ -12,3 +12,4 @@ emg_analysis_results.csv
 .python-version
 .venv/
 emg_cocontraction_results/
+emg_cocontraction_results.csv

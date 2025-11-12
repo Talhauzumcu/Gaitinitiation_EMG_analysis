@@ -22,9 +22,10 @@ For peak averages DONE
 	post peak - front peak
 	cop onset - postpeak
 
-Co contraction
+Co contraction DONE
 	Pre - frontal peak
-	Create plots to double check what we are doing
+	Create plots to double check what we are doing DONE
+	
 Normalization:
 	Nogo within trial peaks
 	Just the max
