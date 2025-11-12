@@ -24,7 +24,7 @@ For peak averages DONE
 
 Co contraction
 	Pre - frontal peak
-
+	Create plots to double check what we are doing
 Normalization:
 	Nogo within trial peaks
 	Just the max
