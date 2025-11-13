@@ -28,17 +28,8 @@ for subject in subjects:
     for trial in subject.trials.values():
         for emg in trial.emgs.values():
             try:
-                raw_signal = emg.get_data()
-                raw_signal[np.isnan(raw_signal)] = 0  # Replace NaNs with zeros
-                time_vector = np.arange(len(raw_signal)) / analog_fs
-
-                # Filtering
-                # filtered_signal = sp.filters.bandpass(raw_signal, low_freq=30, high_freq=300, sampling_rate=analog_fs, order=2)
-                rectified_signal = np.abs(raw_signal)
-                envelope_signal = sp.filters.low_pass(rectified_signal, cutoff_freq=6, sampling_rate=analog_fs, order=2)
-                max_amplitude = np.max(envelope_signal[trial.events['green']:]) # Consider data after 'green' event
-                envelope_signal = envelope_signal / max_amplitude  # Normalize to max amplitude after 'green' event
-
+                envelope_signal = emg.processed_data  
+                time_vector = np.arange(len(envelope_signal)) / analog_fs
                 pre_green = 0.3 # seconds before green cue
                 stop_perceived = int(trial.events['stopsignal'] + 0.027 * analog_fs) # 54 ms delay before monitor shows stop signal
                 iEMG = {'preGreen_copOnset': np.trapezoid(envelope_signal[trial.events['green'] - int(pre_green * analog_fs):trial.events['CoP_onset']]),
@@ -127,7 +118,7 @@ for subject in subjects:
                 print(f"Error plotting {subject.subject_id} - {trial.trial_name} - {emg.name}: {e}")
                 continue
 
-# %% Generate plots for all trials
+# %% Generate plots for all trials showing muscle activation timing
 plot_count = 0
 for subject in subjects:
     for trial_name, trial in subject.trials.items():
@@ -159,7 +150,7 @@ cocontraction_pairs = [('03_ri_tib_ant', '01_ri_soleus'),
                        ('06_le_tib_ant', '08_le_gastroc_med')]  
 for subject in subjects:
     for name, trial in subject.trials.items():
-        line = f"{subject.subject_id}, {trial.trial_name} "
+        row_data = [subject.subject_id, subject.is_young, trial.trial_name]
         for pair in cocontraction_pairs:
             emg1_name, emg2_name = pair
             emg1 = trial.emgs.get(emg1_name)
@@ -170,42 +161,40 @@ for subject in subjects:
                 emg1_segment = emg1.data[start_idx:end_idx]
                 emg2_segment = emg2.data[start_idx:end_idx]
                 cocontraction_pct = get_cocontraction(emg1_segment, emg2_segment)
-                line += f",{cocontraction_pct:.1f} "
+                row_data.append(f"{cocontraction_pct:.1f}")
                 print(f"Subject {subject.subject_id}, Trial {trial.trial_name}, "
                       f"Interval green-frontal_peak, Cocontraction between {emg1_name} "
                       f"and {emg2_name}: {cocontraction_pct:.2f}%")
 
                 #Create and save the plot
-                plot_emg_cocontraction(trial,
-                                        emg1, 
-                                        emg2, 
-                                        slice_idxs=(start_idx, end_idx), 
-                                        plot_start_time=(start_idx/analog_fs - .5),
-                                        plot_end_time=(end_idx/analog_fs + .5), 
-                                        fs=analog_fs, 
-                                        cocontraction_pct=cocontraction_pct)
+                # plot_emg_cocontraction(trial,
+                #                         emg1, 
+                #                         emg2, 
+                #                         slice_idxs=(start_idx, end_idx), 
+                #                         plot_start_time=(start_idx/analog_fs - .5),
+                #                         plot_end_time=(end_idx/analog_fs + .5), 
+                #                         fs=analog_fs, 
+                #                         cocontraction_pct=cocontraction_pct)
                 #Save the plot
-                plot_filename = f"{subject.subject_id}_{trial.trial_name}_{emg1_name}_{emg2_name}_cocontraction.png"
-                plot_path = output_dir / plot_filename
-                plt.savefig(plot_path)
-                plt.close()
+                # plot_filename = f"{subject.subject_id}_{trial.trial_name}_{emg1_name}_{emg2_name}_cocontraction.png"
+                # plot_path = output_dir / plot_filename
+                # plt.savefig(plot_path)
+                # plt.close()
 
             except Exception as e:
-                line += ",nan "
+                row_data.append("nan")
                 print(f"Error calculating cocontraction for {subject.subject_id} {trial.trial_name} between {emg1_name} and {emg2_name}: {e}")
 
-    # Write to CSV
-    
+        # Write to CSV
         write_header = not output_path.exists()
         with open(output_path, 'a', newline='') as csvfile:
             csvwriter = csv.writer(csvfile)
             if write_header:
-                header_parts = ['Subject_ID', 'Trial_Name']
+                header_parts = ['Subject_ID','is_young','Trial_Name']
                 for pair in cocontraction_pairs:
                     emg1_name, emg2_name = pair
                     header_parts.append(f'Cocontraction_{emg1_name}_{emg2_name}_green_frontalPeak')
                 csvwriter.writerow(header_parts)
-            line_parts = line.strip().split(',')
-            csvwriter.writerow(line_parts)
+            csvwriter.writerow(row_data)
 
 # %%
