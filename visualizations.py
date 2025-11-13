@@ -438,3 +438,206 @@ plt.savefig('./plots/average_peaks_OA_vs_YA.png', dpi=300, bbox_inches='tight')
 
 
 # %%
+cocontraction_df = pd.read_csv('emg_cocontraction_results.csv')
+
+# Separate by category
+cocontraction_df_oa = cocontraction_df[cocontraction_df['category'] == 'OA']
+cocontraction_df_ya = cocontraction_df[cocontraction_df['category'] == 'YA']
+
+#%% 10. COCONTRACTION COMPARISON - YA success vs non-success
+fig, axes = plt.subplots(2, 2, figsize=(16, 10))
+fig.suptitle('Muscle Cocontraction Peak Comparison: Young Adults success vs non-success', fontsize=16, fontweight='bold')
+
+cocontraction_columns = [
+    'Cocontraction_03_ri_tib_ant_01_ri_soleus_green_frontalPeak',
+    'Cocontraction_06_le_tib_ant_07_le_soleus_green_frontalPeak',
+    'Cocontraction_03_ri_tib_ant_02_ri_gastroc_med_green_frontalPeak',
+    'Cocontraction_06_le_tib_ant_08_le_gastroc_med_green_frontalPeak'
+]
+
+cocontraction_labels = [
+    'Right Tib Ant - Right Soleus',
+    'Left Tib Ant - Left Soleus',
+    'Right Tib Ant - Right Gastroc Med',
+    'Left Tib Ant - Left Gastroc Med'
+]
+
+for idx, (col, label) in enumerate(zip(cocontraction_columns, cocontraction_labels)):
+    row = idx // 2
+    col_idx = idx % 2
+    ax = axes[row, col_idx]
+    
+    # Boxplot without showing fliers
+    sns.boxplot(data=cocontraction_df_ya, x='success', y=col,
+                ax=ax, showfliers=False, palette=['coral', 'skyblue'])
+    
+    # Jittered individual data points on top of the boxplot
+    sns.stripplot(data=cocontraction_df_ya, x='success', y=col,
+                  jitter=0.25, alpha=0.5, size=4,
+                  palette=['coral', 'skyblue'], ax=ax, edgecolor='gray', linewidth=0.3)
+    
+    ax.set_title(label, fontweight='bold')
+    ax.set_xlabel('Success')
+    ax.set_ylabel('Cocontraction Peak')
+
+plt.tight_layout()
+plt.savefig('./plots/cocontraction_YA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
+# plt.show()
+
+#%% 11. COCONTRACTION COMPARISON - OA success vs non-success
+fig, axes = plt.subplots(2, 2, figsize=(16, 10))
+fig.suptitle('Muscle Cocontraction Peak Comparison: Older Adults success vs non-success', fontsize=16, fontweight='bold')
+
+for idx, (col, label) in enumerate(zip(cocontraction_columns, cocontraction_labels)):
+    row = idx // 2
+    col_idx = idx % 2
+    ax = axes[row, col_idx]
+    
+    # Boxplot without showing fliers
+    sns.boxplot(data=cocontraction_df_oa, x='success', y=col,
+                ax=ax, showfliers=False, palette=['coral', 'skyblue'])
+    
+    # Jittered individual data points on top of the boxplot
+    sns.stripplot(data=cocontraction_df_oa, x='success', y=col,
+                  jitter=0.25, alpha=0.5, size=4,
+                  palette=['coral', 'skyblue'], ax=ax, edgecolor='gray', linewidth=0.3)
+    
+    ax.set_title(label, fontweight='bold')
+    ax.set_xlabel('Success')
+    ax.set_ylabel('Cocontraction Peak')
+
+plt.tight_layout()
+plt.savefig('./plots/cocontraction_OA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
+# plt.show()
+
+#%% 12. COCONTRACTION COMPARISON - OA vs YA
+fig, axes = plt.subplots(2, 2, figsize=(16, 10))
+fig.suptitle('Muscle Cocontraction Peak Comparison: Older Adults vs Young Adults', fontsize=16, fontweight='bold')
+
+for idx, (col, label) in enumerate(zip(cocontraction_columns, cocontraction_labels)):
+    row = idx // 2
+    col_idx = idx % 2
+    ax = axes[row, col_idx]
+    
+    # Boxplot without showing fliers
+    sns.boxplot(data=cocontraction_df, x='category', y=col,
+                ax=ax, showfliers=False, palette=['coral', 'skyblue'])
+    
+    # Jittered individual data points on top of the boxplot
+    sns.stripplot(data=cocontraction_df, x='category', y=col,
+                  jitter=0.25, alpha=0.5, size=4,
+                  palette=['coral', 'skyblue'], ax=ax, edgecolor='gray', linewidth=0.3)
+    
+    ax.set_title(label, fontweight='bold')
+    ax.set_xlabel('Category')
+    ax.set_ylabel('Cocontraction Peak')
+
+plt.tight_layout()
+plt.savefig('./plots/cocontraction_OA_vs_YA.png', dpi=300, bbox_inches='tight')
+# plt.show()
+
+#%% 13. COCONTRACTION COMPARISON - YA success vs non-success (Violin plots)
+fig, axes = plt.subplots(2, 2, figsize=(16, 10))
+fig.suptitle('Muscle Cocontraction Peak Distribution: Young Adults success vs non-success', fontsize=16, fontweight='bold')
+
+for idx, (col, label) in enumerate(zip(cocontraction_columns, cocontraction_labels)):
+    row = idx // 2
+    col_idx = idx % 2
+    ax = axes[row, col_idx]
+    
+    # Violin plot for distribution
+    sns.violinplot(data=cocontraction_df_ya, x='success', y=col,
+                   split=True, gap=-0.2, ax=ax, inner='quartile', palette=['coral', 'skyblue'])
+    
+    sns.stripplot(data=cocontraction_df_ya, x='success', y=col,
+                  jitter=0.25, alpha=0.4, size=3,
+                  color='black', ax=ax, edgecolor='gray', linewidth=0.3)
+    
+    ax.set_title(label, fontweight='bold')
+    ax.set_xlabel('Success')
+    ax.set_ylabel('Cocontraction Peak')
+
+plt.tight_layout()
+plt.savefig('./plots/cocontraction_violin_YA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
+# plt.show()
+
+#%% 14. COCONTRACTION COMPARISON - OA success vs non-success (Violin plots)
+fig, axes = plt.subplots(2, 2, figsize=(16, 10))
+fig.suptitle('Muscle Cocontraction Peak Distribution: Older Adults success vs non-success', fontsize=16, fontweight='bold')
+
+for idx, (col, label) in enumerate(zip(cocontraction_columns, cocontraction_labels)):
+    row = idx // 2
+    col_idx = idx % 2
+    ax = axes[row, col_idx]
+    
+    # Violin plot for distribution
+    sns.violinplot(data=cocontraction_df_oa, x='success', y=col,
+                   split=True, gap=-0.2, ax=ax, inner='quartile', palette=['coral', 'skyblue'])
+    
+    sns.stripplot(data=cocontraction_df_oa, x='success', y=col,
+                  jitter=0.25, alpha=0.4, size=3,
+                  color='black', ax=ax, edgecolor='gray', linewidth=0.3)
+    
+    ax.set_title(label, fontweight='bold')
+    ax.set_xlabel('Success')
+    ax.set_ylabel('Cocontraction Peak')
+
+plt.tight_layout()
+plt.savefig('./plots/cocontraction_violin_OA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
+# plt.show()
+
+#%% 15. COCONTRACTION COMPARISON - OA vs YA (Violin plots)
+fig, axes = plt.subplots(2, 2, figsize=(16, 10))
+fig.suptitle('Muscle Cocontraction Peak Distribution: Older Adults vs Young Adults', fontsize=16, fontweight='bold')
+
+for idx, (col, label) in enumerate(zip(cocontraction_columns, cocontraction_labels)):
+    row = idx // 2
+    col_idx = idx % 2
+    ax = axes[row, col_idx]
+    
+    # Violin plot for distribution
+    sns.violinplot(data=cocontraction_df, x='category', y=col,
+                   split=True, ax=ax, inner='quartile', palette=['coral', 'skyblue'])
+    
+    sns.stripplot(data=cocontraction_df, x='category', y=col,
+                  jitter=0.25, alpha=0.4, size=3,
+                  color='black', ax=ax, edgecolor='gray', linewidth=0.3)
+    
+    ax.set_title(label, fontweight='bold')
+    ax.set_xlabel('Category')
+    ax.set_ylabel('Cocontraction Peak')
+
+plt.tight_layout()
+plt.savefig('./plots/cocontraction_violin_OA_vs_YA.png', dpi=300, bbox_inches='tight')
+# plt.show()
+
+#%% 16. COCONTRACTION HEATMAP - Mean values by category and success
+fig, axes = plt.subplots(1, 2, figsize=(16, 6))
+fig.suptitle('Mean Cocontraction Peaks: Heatmap Comparison', fontsize=16, fontweight='bold')
+
+# Prepare data for heatmap - YA
+ya_mean = cocontraction_df_ya.groupby('success')[cocontraction_columns].mean()
+ya_mean.index = ['Non-Success', 'Success']
+ya_mean.columns = [label.replace(' - ', '\n') for label in cocontraction_labels]
+
+# Prepare data for heatmap - OA
+oa_mean = cocontraction_df_oa.groupby('success')[cocontraction_columns].mean()
+oa_mean.index = ['Non-Success', 'Success']
+oa_mean.columns = [label.replace(' - ', '\n') for label in cocontraction_labels]
+
+# YA heatmap
+sns.heatmap(ya_mean.T, annot=True, fmt='.3f', cmap='YlOrRd', ax=axes[0], cbar_kws={'label': 'Mean Peak'})
+axes[0].set_title('Young Adults', fontweight='bold')
+axes[0].set_xlabel('')
+axes[0].set_ylabel('Muscle Pair')
+
+# OA heatmap
+sns.heatmap(oa_mean.T, annot=True, fmt='.3f', cmap='YlOrRd', ax=axes[1], cbar_kws={'label': 'Mean Peak'})
+axes[1].set_title('Older Adults', fontweight='bold')
+axes[1].set_xlabel('')
+axes[1].set_ylabel('')
+
+plt.tight_layout()
+plt.savefig('./plots/cocontraction_heatmap_comparison.png', dpi=300, bbox_inches='tight')
+# plt.show()
+# %%

@@ -150,7 +150,8 @@ cocontraction_pairs = [('03_ri_tib_ant', '01_ri_soleus'),
                        ('06_le_tib_ant', '08_le_gastroc_med')]  
 for subject in subjects:
     for name, trial in subject.trials.items():
-        row_data = [subject.subject_id, subject.is_young, trial.trial_name]
+        category = 'YA' if subject.is_young else 'OA'
+        row_data = [subject.subject_id, category, trial.success, trial.trial_name]
         for pair in cocontraction_pairs:
             emg1_name, emg2_name = pair
             emg1 = trial.emgs.get(emg1_name)
@@ -190,7 +191,7 @@ for subject in subjects:
         with open(output_path, 'a', newline='') as csvfile:
             csvwriter = csv.writer(csvfile)
             if write_header:
-                header_parts = ['Subject_ID','is_young','Trial_Name']
+                header_parts = ['Subject_ID','category','success','Trial_Name']
                 for pair in cocontraction_pairs:
                     emg1_name, emg2_name = pair
                     header_parts.append(f'Cocontraction_{emg1_name}_{emg2_name}_green_frontalPeak')
