@@ -597,7 +597,7 @@ for idx, (col, label) in enumerate(zip(cocontraction_columns, cocontraction_labe
     
     # Violin plot for distribution
     sns.violinplot(data=cocontraction_df, x='category', y=col,
-                   split=True, ax=ax, inner='quartile', palette=['coral', 'skyblue'])
+                   split=True, gap=-0.2, ax=ax, inner='quartile', palette=['coral', 'skyblue'])
     
     sns.stripplot(data=cocontraction_df, x='category', y=col,
                   jitter=0.25, alpha=0.4, size=3,
