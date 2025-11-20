@@ -33,7 +33,7 @@ def save_analysis_results_to_csv(all_results, filename="analysis_results.csv"):
         all_keys.update(result.keys())
     
     # Define the order of base columns
-    base_columns = ['trial_name', 'subject_id', 'category', 'success', 'latency', 'emg_channel']
+    base_columns = ['trial_name', 'subject_id', 'category', 'success', 'latency', 'reaction_time(ms)', 'emg_channel']
     
     # Get all analysis result columns (sorted for consistency)
     analysis_columns = sorted([k for k in all_keys if k not in base_columns])

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 from scipy import stats
-
+from utils import *
 # Set style for better-looking plots
 sns.set_style("whitegrid")
 sns.set_palette("husl")
@@ -640,4 +640,225 @@ axes[1].set_ylabel('')
 plt.tight_layout()
 plt.savefig('./plots/cocontraction_heatmap_comparison.png', dpi=300, bbox_inches='tight')
 # plt.show()
+# %% Time series plots of EMG signals between OA and YA groups
+subjects = load_subjects_pickle("subjects_cache.pkl")
+# %%
+data_list = []
+for subject in subjects:
+    for trial in subject.trials.values():
+        for EMG in trial.emgs.values():
+            try:
+                emg_data = EMG.processed_data
+                start_idx = trial.events['CoP_onset']
+                end_idx = trial.events['frontal_peak']
+                emg_data = emg_data[start_idx:end_idx]
+                # time normalize the emg data to 0-100%
+                original_length = len(emg_data)
+                original_time = np.linspace(0, 100, original_length)
+                normalized_time = np.linspace(0, 100, 200)
+                emg_data_normalized = np.interp(normalized_time, original_time, emg_data)
+                category = 'YA' if subject.is_young else 'OA'
+                data_list.append({
+                    'category': category,
+                    'emg_channel': EMG.name,
+                    'success': trial.success,
+                    'data': emg_data_normalized})
+            except Exception as e:
+                print(f"Missing data for Subject {subject.subject_id},"
+                      f"Trial {trial.trial_name}, EMG {EMG.name} e: {e}")
+                continue
+# %%
+time_series_df = pd.DataFrame(data_list)
+
+#%% Plot mean time series with 95% CI for each EMG channel (YA vs OA)
+# Get unique EMG channels
+emg_channels = time_series_df['emg_channel'].unique()
+
+# Create time vector (0-100%)
+time_normalized = np.linspace(0, 100, 200)
+
+# Calculate number of subplots needed
+n_channels = len(emg_channels)
+n_cols = 3
+n_rows = int(np.ceil(n_channels / n_cols))
+
+fig, axes = plt.subplots(n_rows, n_cols, figsize=(18, 5 * n_rows))
+axes = axes.flatten() if n_channels > 1 else [axes]
+
+fig.suptitle('Mean EMG Time Series (CoP Onset to Frontal Peak): YA vs OA with 95% CI', 
+             fontsize=16, fontweight='bold')
+
+for idx, channel in enumerate(emg_channels):
+    ax = axes[idx]
+    
+    channel_data = time_series_df[time_series_df['emg_channel'] == channel]
+    
+    ya_data = channel_data[channel_data['category'] == 'YA']['data'].values
+    oa_data = channel_data[channel_data['category'] == 'OA']['data'].values
+    
+    ya_array = np.vstack(ya_data) if len(ya_data) > 0 else np.array([])
+    oa_array = np.vstack(oa_data) if len(oa_data) > 0 else np.array([])
+    
+    if len(ya_array) > 0:
+        ya_mean = np.mean(ya_array, axis=0)
+        ya_std = np.std(ya_array, axis=0)
+        ya_n = len(ya_array)
+        ya_sem = ya_std / np.sqrt(ya_n)  # Standard error of mean
+        ya_ci = 1.96 * ya_sem  # 95% CI
+        
+        # Plot YA
+        ax.plot(time_normalized, ya_mean, color='skyblue', linewidth=2.5, label=f'YA (n={ya_n})')
+        ax.fill_between(time_normalized, ya_mean - ya_ci, ya_mean + ya_ci, 
+                        color='skyblue', alpha=0.3)
+    
+    if len(oa_array) > 0:
+        oa_mean = np.mean(oa_array, axis=0)
+        oa_std = np.std(oa_array, axis=0)
+        oa_n = len(oa_array)
+        oa_sem = oa_std / np.sqrt(oa_n)  # Standard error of mean
+        oa_ci = 1.96 * oa_sem  # 95% CI
+        
+        # Plot OA
+        ax.plot(time_normalized, oa_mean, color='coral', linewidth=2.5, label=f'OA (n={oa_n})')
+        ax.fill_between(time_normalized, oa_mean - oa_ci, oa_mean + oa_ci, 
+                        color='coral', alpha=0.3)
+    
+    ax.set_title(channel, fontweight='bold')
+    ax.set_xlabel('Time (% of COP onset to Frontal Peak)')
+    ax.set_ylabel('EMG Amplitude (normalized)')
+    ax.legend(loc='best')
+    ax.grid(True, alpha=0.3)
+
+for idx in range(n_channels, len(axes)):
+    fig.delaxes(axes[idx])
+
+plt.tight_layout()
+plt.savefig('./plots/emg_timeseries_mean_CI_YA_vs_OA.png', dpi=300, bbox_inches='tight')
+# plt.show()
+
+#%% Plot mean time series with 95% CI for each EMG channel (YA: success vs non-success)
+# Get unique EMG channels
+emg_channels = time_series_df['emg_channel'].unique()
+
+# Create time vector (0-100%)
+time_normalized = np.linspace(0, 100, 200)
+
+# Calculate number of subplots needed
+n_channels = len(emg_channels)
+n_cols = 3
+n_rows = int(np.ceil(n_channels / n_cols))
+
+fig, axes = plt.subplots(n_rows, n_cols, figsize=(18, 5 * n_rows))
+axes = axes.flatten() if n_channels > 1 else [axes]
+
+fig.suptitle('Mean EMG Time Series - Young Adults: Success vs Non-Success with 95% CI', 
+             fontsize=16, fontweight='bold')
+
+for idx, channel in enumerate(emg_channels):
+    ax = axes[idx]
+    
+    channel_data = time_series_df[(time_series_df['emg_channel'] == channel) & 
+                                   (time_series_df['category'] == 'YA')]
+    
+    success_data = channel_data[channel_data['success'] == True]['data'].values
+    non_success_data = channel_data[channel_data['success'] == False]['data'].values
+    
+    success_array = np.vstack(success_data) if len(success_data) > 0 else np.array([])
+    non_success_array = np.vstack(non_success_data) if len(non_success_data) > 0 else np.array([])
+    
+    if len(success_array) > 0:
+        success_mean = np.mean(success_array, axis=0)
+        success_std = np.std(success_array, axis=0)
+        success_n = len(success_array)
+        success_sem = success_std / np.sqrt(success_n)
+        success_ci = 1.96 * success_sem
+        
+        ax.plot(time_normalized, success_mean, color='green', linewidth=2.5, 
+                label=f'Success (n={success_n})')
+        ax.fill_between(time_normalized, success_mean - success_ci, success_mean + success_ci, 
+                        color='green', alpha=0.3)
+    
+    if len(non_success_array) > 0:
+        non_success_mean = np.mean(non_success_array, axis=0)
+        non_success_std = np.std(non_success_array, axis=0)
+        non_success_n = len(non_success_array)
+        non_success_sem = non_success_std / np.sqrt(non_success_n)
+        non_success_ci = 1.96 * non_success_sem
+        
+        ax.plot(time_normalized, non_success_mean, color='red', linewidth=2.5, 
+                label=f'Non-Success (n={non_success_n})')
+        ax.fill_between(time_normalized, non_success_mean - non_success_ci, 
+                        non_success_mean + non_success_ci, 
+                        color='red', alpha=0.3)
+    
+    ax.set_title(channel, fontweight='bold')
+    ax.set_xlabel('Time (% of COP onset to Frontal Peak)')
+    ax.set_ylabel('EMG Amplitude (normalized)')
+    ax.legend(loc='best')
+    ax.grid(True, alpha=0.3)
+
+for idx in range(n_channels, len(axes)):
+    fig.delaxes(axes[idx])
+
+plt.tight_layout()
+plt.savefig('./plots/emg_timeseries_mean_CI_YA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
+# plt.show()
+
+#%% Plot mean time series with 95% CI for each EMG channel (OA: success vs non-success)
+fig, axes = plt.subplots(n_rows, n_cols, figsize=(18, 5 * n_rows))
+axes = axes.flatten() if n_channels > 1 else [axes]
+
+fig.suptitle('Mean EMG Time Series - Older Adults: Success vs Non-Success with 95% CI', 
+             fontsize=16, fontweight='bold')
+
+for idx, channel in enumerate(emg_channels):
+    ax = axes[idx]
+    
+    channel_data = time_series_df[(time_series_df['emg_channel'] == channel) & 
+                                   (time_series_df['category'] == 'OA')]
+    
+    success_data = channel_data[channel_data['success'] == True]['data'].values
+    non_success_data = channel_data[channel_data['success'] == False]['data'].values
+    
+    success_array = np.vstack(success_data) if len(success_data) > 0 else np.array([])
+    non_success_array = np.vstack(non_success_data) if len(non_success_data) > 0 else np.array([])
+
+    if len(success_array) > 0:
+        success_mean = np.mean(success_array, axis=0)
+        success_std = np.std(success_array, axis=0)
+        success_n = len(success_array)
+        success_sem = success_std / np.sqrt(success_n)
+        success_ci = 1.96 * success_sem
+        
+        ax.plot(time_normalized, success_mean, color='green', linewidth=2.5, 
+                label=f'Success (n={success_n})')
+        ax.fill_between(time_normalized, success_mean - success_ci, success_mean + success_ci, 
+                        color='green', alpha=0.3)
+    
+    if len(non_success_array) > 0:
+        non_success_mean = np.mean(non_success_array, axis=0)
+        non_success_std = np.std(non_success_array, axis=0)
+        non_success_n = len(non_success_array)
+        non_success_sem = non_success_std / np.sqrt(non_success_n)
+        non_success_ci = 1.96 * non_success_sem
+        
+        ax.plot(time_normalized, non_success_mean, color='red', linewidth=2.5, 
+                label=f'Non-Success (n={non_success_n})')
+        ax.fill_between(time_normalized, non_success_mean - non_success_ci, 
+                        non_success_mean + non_success_ci, 
+                        color='red', alpha=0.3)
+    
+    ax.set_title(channel, fontweight='bold')
+    ax.set_xlabel('Time (% of COP onset to Frontal Peak)')
+    ax.set_ylabel('EMG Amplitude (normalized)')
+    ax.legend(loc='best')
+    ax.grid(True, alpha=0.3)
+
+for idx in range(n_channels, len(axes)):
+    fig.delaxes(axes[idx])
+
+plt.tight_layout()
+plt.savefig('./plots/emg_timeseries_mean_CI_OA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
+# plt.show()
+
 # %%

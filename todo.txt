@@ -1,3 +1,9 @@
+TODO after meeting 19.11.2025
+	DONE Additonal column for the output tables ("Reaction time") so the bad green signals can be filtered during stats
+	DONE Cocontraction between cop onset - stop signal and stopsignal - postpeak
+	Mean start and stop times for groups (Igor was supposed to send me an article)
+	DONE Mean between groups as time series between cop onset and frontal peak for individual muscles
+
 EMG normalization snipets
 	Pre-Green - Front COP peak
 	
@@ -23,7 +29,9 @@ For peak averages DONE
 	cop onset - postpeak
 
 Co contraction DONE
-	Pre - frontal peak
+	green - frontal peak
+	cop onset stopsignal
+	stopsignal post peak
 	Create plots to double check what we are doing DONE
 	
 Normalization:
