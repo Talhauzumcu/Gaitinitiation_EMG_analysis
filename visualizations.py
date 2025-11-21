@@ -11,8 +11,14 @@ sns.set_palette("husl")
 plt.rcParams['figure.figsize'] = (12, 6)
 
 #%%
+SAVE_DIR = f'./plots'
+if not os.path.exists(SAVE_DIR):
+    os.makedirs(SAVE_DIR)
+    
 df = pd.read_csv('emg_analysis_results.csv')
-cols = df.select_dtypes('number').columns.drop('subject_id')  # limits to a (float), b (int) and e (timedelta)
+df = df[(df['reaction_time(ms)'] > 0) & (df['reaction_time(ms)'] < 1000)]
+
+cols = df.select_dtypes('number').columns.drop(['subject_id','reaction_time(ms)'])  
 df_sub = df.loc[:, cols]
 lim = np.abs((df_sub - df_sub.mean()) / df_sub.std(ddof=0)) < 3
 df.loc[:, cols] = df_sub.where(lim, np.nan)
@@ -68,7 +74,7 @@ if len(amplitude_columns) < 6:
     fig.delaxes(axes[1, 2])
 
 plt.tight_layout()
-plt.savefig('./plots/emg_amplitude_YA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
+plt.savefig(f'{SAVE_DIR}/emg_amplitude_YA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
 # plt.show()
 
 #%% 2. EMG AMPLITUDE COMPARISON ACROSS TEMPORAL WINDOWS OA (with jittered data points)
@@ -120,7 +126,7 @@ if len(amplitude_columns) < 6:
     fig.delaxes(axes[1, 2])
 
 plt.tight_layout()
-plt.savefig('./plots/emg_amplitude_OA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
+plt.savefig(f'{SAVE_DIR}/emg_amplitude_OA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
 # plt.show()
 
 #%% 3. EMG AMPLITUDE COMPARISON ACROSS TEMPORAL WINDOWS OA vs YA(with jittered data points)
@@ -172,7 +178,7 @@ if len(amplitude_columns) < 6:
     fig.delaxes(axes[1, 2])
 
 plt.tight_layout()
-plt.savefig('./plots/emg_amplitude_OA_vs_YA.png', dpi=300, bbox_inches='tight')
+plt.savefig(f'{SAVE_DIR}/emg_amplitude_OA_vs_YA.png', dpi=300, bbox_inches='tight')
 # plt.show()
 
 #%% 4. iEMG COMPARISON - YA success vs non-success (Violin + Box plots)
@@ -223,7 +229,7 @@ if len(iemg_columns) < 6:
     fig.delaxes(axes[1, 2])
 
 plt.tight_layout()
-plt.savefig('./plots/iemg_YA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
+plt.savefig(f'{SAVE_DIR}/iemg_YA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
 # plt.show()
 
 #%% 5. iEMG COMPARISON - OA success vs non-success 
@@ -265,7 +271,7 @@ if len(iemg_columns) < 6:
     fig.delaxes(axes[1, 2])
 
 plt.tight_layout()
-plt.savefig('./plots/iemg_OA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
+plt.savefig(f'{SAVE_DIR}/iemg_OA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
 # plt.show()
 
 #%% 6. iEMG COMPARISON - OA vs YA (Violin + Box plots)
@@ -307,7 +313,7 @@ if len(iemg_columns) < 6:
     fig.delaxes(axes[1, 2])
 
 plt.tight_layout()
-plt.savefig('./plots/iemg_OA_vs_YA.png', dpi=300, bbox_inches='tight')
+plt.savefig(f'{SAVE_DIR}/iemg_OA_vs_YA.png', dpi=300, bbox_inches='tight')
 # plt.show()
 
 #%% 7. AVERAGE PEAKS COMPARISON - YA success vs non-success (Violin + Box plots)
@@ -349,7 +355,7 @@ if len(peak_columns) < 6:
     fig.delaxes(axes[1, 2])
 
 plt.tight_layout()
-plt.savefig('./plots/average_peaks_YA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
+plt.savefig(f'{SAVE_DIR}/average_peaks_YA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
 # plt.show()
 
 #%% 8. AVERAGE PEAKS COMPARISON - OA success vs non-success (Violin + Box plots)
@@ -391,7 +397,7 @@ if len(peak_columns) < 6:
     fig.delaxes(axes[1, 2])
 
 plt.tight_layout()
-plt.savefig('./plots/average_peaks_OA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
+plt.savefig(f'{SAVE_DIR}/average_peaks_OA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
 # plt.show()
 
 #%% 9. AVERAGE PEAKS COMPARISON - OA vs YA (Violin + Box plots)
@@ -433,38 +439,50 @@ if len(peak_columns) < 6:
     fig.delaxes(axes[1, 2])
 
 plt.tight_layout()
-plt.savefig('./plots/average_peaks_OA_vs_YA.png', dpi=300, bbox_inches='tight')
+plt.savefig(f'{SAVE_DIR}/average_peaks_OA_vs_YA.png', dpi=300, bbox_inches='tight')
 # plt.show()
 
 
 # %%
 cocontraction_df = pd.read_csv('emg_cocontraction_results.csv')
+cocontraction_df = cocontraction_df[(cocontraction_df['reaction_time(ms)'] > 0) & (cocontraction_df['reaction_time(ms)'] < 1000)]
 
+#Remove outliers based on z-score
+# cols = cocontraction_df.select_dtypes('number').columns.drop(['Subject_ID','reaction_time(ms)'])  
+# cocontraction_df_sub = cocontraction_df.loc[:, cols]
+# lim = np.abs((cocontraction_df_sub - cocontraction_df_sub.mean()) / cocontraction_df_sub.std(ddof=0)) < 3
+# cocontraction_df.loc[:, cols] = cocontraction_df_sub.where(lim, np.nan)
 # Separate by category
 cocontraction_df_oa = cocontraction_df[cocontraction_df['category'] == 'OA']
 cocontraction_df_ya = cocontraction_df[cocontraction_df['category'] == 'YA']
 
 #%% 10. COCONTRACTION COMPARISON - YA success vs non-success
-fig, axes = plt.subplots(2, 2, figsize=(16, 10))
-fig.suptitle('Muscle Cocontraction Peak Comparison: Young Adults success vs non-success', fontsize=16, fontweight='bold')
+fig, axes = plt.subplots(3, 4, figsize=(16, 10))
+fig.suptitle('Muscle Cocontraction Comparison: Young Adults success vs non-success', fontsize=16, fontweight='bold')
 
-cocontraction_columns = [
-    'Cocontraction_03_ri_tib_ant_01_ri_soleus_green_frontalPeak',
-    'Cocontraction_06_le_tib_ant_07_le_soleus_green_frontalPeak',
-    'Cocontraction_03_ri_tib_ant_02_ri_gastroc_med_green_frontalPeak',
-    'Cocontraction_06_le_tib_ant_08_le_gastroc_med_green_frontalPeak'
-]
+cocontraction_columns = cocontraction_df.columns[5:]
 
 cocontraction_labels = [
-    'Right Tib Ant - Right Soleus',
-    'Left Tib Ant - Left Soleus',
-    'Right Tib Ant - Right Gastroc Med',
-    'Left Tib Ant - Left Gastroc Med'
+    'Right Tib Ant - Right Soleus | Green to frontal Peak',
+    'Right Tib Ant - Right Soleus | CoP onset to Stop signal',
+    'Right Tib Ant - Right Soleus | Stop signal to Post Peak',
+
+    'Left Tib Ant - Left Soleus | Green to frontal Peak',
+    'Left Tib Ant - Left Soleus | CoP onset to Stop signal',
+    'Left Tib Ant - Left Soleus | Stop signal to Post Peak',
+
+    'Right Tib Ant - Right Gastroc Med | Green to frontal Peak',
+    'Right Tib Ant - Right Gastroc Med | CoP onset to Stop signal',
+    'Right Tib Ant - Right Gastroc Med | Stop signal to Post Peak',
+    
+    'Left Tib Ant - Left Gastroc Med | Green to frontal Peak',
+    'Left Tib Ant - Left Gastroc Med | CoP onset to Stop signal',
+    'Left Tib Ant - Left Gastroc Med | Stop signal to Post Peak'
 ]
 
 for idx, (col, label) in enumerate(zip(cocontraction_columns, cocontraction_labels)):
-    row = idx // 2
-    col_idx = idx % 2
+    row = idx // 4
+    col_idx = idx % 4
     ax = axes[row, col_idx]
     
     # Boxplot without showing fliers
@@ -476,21 +494,21 @@ for idx, (col, label) in enumerate(zip(cocontraction_columns, cocontraction_labe
                   jitter=0.25, alpha=0.5, size=4,
                   palette=['coral', 'skyblue'], ax=ax, edgecolor='gray', linewidth=0.3)
     
-    ax.set_title(label, fontweight='bold')
+    ax.set_title(label, fontsize=8)
     ax.set_xlabel('Success')
-    ax.set_ylabel('Cocontraction Peak')
+    ax.set_ylabel('Cocontraction Percentage')
 
 plt.tight_layout()
-plt.savefig('./plots/cocontraction_YA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
+plt.savefig(f'{SAVE_DIR}/cocontraction_YA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
 # plt.show()
 
 #%% 11. COCONTRACTION COMPARISON - OA success vs non-success
-fig, axes = plt.subplots(2, 2, figsize=(16, 10))
-fig.suptitle('Muscle Cocontraction Peak Comparison: Older Adults success vs non-success', fontsize=16, fontweight='bold')
+fig, axes = plt.subplots(3, 4, figsize=(16, 10))
+fig.suptitle('Muscle Cocontraction Comparison: Older Adults success vs non-success', fontsize=16, fontweight='bold')
 
 for idx, (col, label) in enumerate(zip(cocontraction_columns, cocontraction_labels)):
-    row = idx // 2
-    col_idx = idx % 2
+    row = idx // 4
+    col_idx = idx % 4
     ax = axes[row, col_idx]
     
     # Boxplot without showing fliers
@@ -502,21 +520,21 @@ for idx, (col, label) in enumerate(zip(cocontraction_columns, cocontraction_labe
                   jitter=0.25, alpha=0.5, size=4,
                   palette=['coral', 'skyblue'], ax=ax, edgecolor='gray', linewidth=0.3)
     
-    ax.set_title(label, fontweight='bold')
+    ax.set_title(label, fontsize=8)
     ax.set_xlabel('Success')
-    ax.set_ylabel('Cocontraction Peak')
+    ax.set_ylabel('Cocontraction Percentage')
 
 plt.tight_layout()
-plt.savefig('./plots/cocontraction_OA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
+plt.savefig(f'{SAVE_DIR}/cocontraction_OA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
 # plt.show()
 
 #%% 12. COCONTRACTION COMPARISON - OA vs YA
-fig, axes = plt.subplots(2, 2, figsize=(16, 10))
-fig.suptitle('Muscle Cocontraction Peak Comparison: Older Adults vs Young Adults', fontsize=16, fontweight='bold')
+fig, axes = plt.subplots(3, 4, figsize=(16, 10))
+fig.suptitle('Muscle Cocontraction Comparison: Older Adults vs Young Adults', fontsize=16, fontweight='bold')
 
 for idx, (col, label) in enumerate(zip(cocontraction_columns, cocontraction_labels)):
-    row = idx // 2
-    col_idx = idx % 2
+    row = idx // 4
+    col_idx = idx % 4
     ax = axes[row, col_idx]
     
     # Boxplot without showing fliers
@@ -528,21 +546,21 @@ for idx, (col, label) in enumerate(zip(cocontraction_columns, cocontraction_labe
                   jitter=0.25, alpha=0.5, size=4,
                   palette=['coral', 'skyblue'], ax=ax, edgecolor='gray', linewidth=0.3)
     
-    ax.set_title(label, fontweight='bold')
+    ax.set_title(label, fontsize=8)
     ax.set_xlabel('Category')
-    ax.set_ylabel('Cocontraction Peak')
+    ax.set_ylabel('Cocontraction Percentage')
 
 plt.tight_layout()
-plt.savefig('./plots/cocontraction_OA_vs_YA.png', dpi=300, bbox_inches='tight')
+plt.savefig(f'{SAVE_DIR}/cocontraction_OA_vs_YA.png', dpi=300, bbox_inches='tight')
 # plt.show()
 
 #%% 13. COCONTRACTION COMPARISON - YA success vs non-success (Violin plots)
-fig, axes = plt.subplots(2, 2, figsize=(16, 10))
-fig.suptitle('Muscle Cocontraction Peak Distribution: Young Adults success vs non-success', fontsize=16, fontweight='bold')
+fig, axes = plt.subplots(3, 4, figsize=(16, 10))
+fig.suptitle('Muscle Cocontraction Comparison: Young Adults success vs non-success', fontsize=16, fontweight='bold')
 
 for idx, (col, label) in enumerate(zip(cocontraction_columns, cocontraction_labels)):
-    row = idx // 2
-    col_idx = idx % 2
+    row = idx // 4
+    col_idx = idx % 4
     ax = axes[row, col_idx]
     
     # Violin plot for distribution
@@ -553,21 +571,21 @@ for idx, (col, label) in enumerate(zip(cocontraction_columns, cocontraction_labe
                   jitter=0.25, alpha=0.4, size=3,
                   color='black', ax=ax, edgecolor='gray', linewidth=0.3)
     
-    ax.set_title(label, fontweight='bold')
+    ax.set_title(label, fontsize=8)
     ax.set_xlabel('Success')
-    ax.set_ylabel('Cocontraction Peak')
+    ax.set_ylabel('Cocontraction Percentage')
 
 plt.tight_layout()
-plt.savefig('./plots/cocontraction_violin_YA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
+plt.savefig(f'{SAVE_DIR}/cocontraction_violin_YA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
 # plt.show()
 
 #%% 14. COCONTRACTION COMPARISON - OA success vs non-success (Violin plots)
-fig, axes = plt.subplots(2, 2, figsize=(16, 10))
-fig.suptitle('Muscle Cocontraction Peak Distribution: Older Adults success vs non-success', fontsize=16, fontweight='bold')
+fig, axes = plt.subplots(3, 4, figsize=(16, 10))
+fig.suptitle('Muscle Cocontraction Comparison: Older Adults success vs non-success', fontsize=16, fontweight='bold')
 
 for idx, (col, label) in enumerate(zip(cocontraction_columns, cocontraction_labels)):
-    row = idx // 2
-    col_idx = idx % 2
+    row = idx // 4
+    col_idx = idx % 4
     ax = axes[row, col_idx]
     
     # Violin plot for distribution
@@ -578,21 +596,21 @@ for idx, (col, label) in enumerate(zip(cocontraction_columns, cocontraction_labe
                   jitter=0.25, alpha=0.4, size=3,
                   color='black', ax=ax, edgecolor='gray', linewidth=0.3)
     
-    ax.set_title(label, fontweight='bold')
+    ax.set_title(label, fontsize=8)
     ax.set_xlabel('Success')
-    ax.set_ylabel('Cocontraction Peak')
+    ax.set_ylabel('Cocontraction Percentage')
 
 plt.tight_layout()
-plt.savefig('./plots/cocontraction_violin_OA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
+plt.savefig(f'{SAVE_DIR}/cocontraction_violin_OA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
 # plt.show()
 
 #%% 15. COCONTRACTION COMPARISON - OA vs YA (Violin plots)
-fig, axes = plt.subplots(2, 2, figsize=(16, 10))
-fig.suptitle('Muscle Cocontraction Peak Distribution: Older Adults vs Young Adults', fontsize=16, fontweight='bold')
+fig, axes = plt.subplots(3, 4, figsize=(16, 10))
+fig.suptitle('Muscle Cocontraction Comparison: Older Adults vs Young Adults', fontsize=16, fontweight='bold')
 
 for idx, (col, label) in enumerate(zip(cocontraction_columns, cocontraction_labels)):
-    row = idx // 2
-    col_idx = idx % 2
+    row = idx // 4
+    col_idx = idx % 4
     ax = axes[row, col_idx]
     
     # Violin plot for distribution
@@ -603,43 +621,14 @@ for idx, (col, label) in enumerate(zip(cocontraction_columns, cocontraction_labe
                   jitter=0.25, alpha=0.4, size=3,
                   color='black', ax=ax, edgecolor='gray', linewidth=0.3)
     
-    ax.set_title(label, fontweight='bold')
+    ax.set_title(label, fontsize=8)
     ax.set_xlabel('Category')
-    ax.set_ylabel('Cocontraction Peak')
+    ax.set_ylabel('Cocontraction Percentage')
 
 plt.tight_layout()
-plt.savefig('./plots/cocontraction_violin_OA_vs_YA.png', dpi=300, bbox_inches='tight')
+plt.savefig(f'{SAVE_DIR}/cocontraction_violin_OA_vs_YA.png', dpi=300, bbox_inches='tight')
 # plt.show()
 
-#%% 16. COCONTRACTION HEATMAP - Mean values by category and success
-fig, axes = plt.subplots(1, 2, figsize=(16, 6))
-fig.suptitle('Mean Cocontraction Peaks: Heatmap Comparison', fontsize=16, fontweight='bold')
-
-# Prepare data for heatmap - YA
-ya_mean = cocontraction_df_ya.groupby('success')[cocontraction_columns].mean()
-ya_mean.index = ['Non-Success', 'Success']
-ya_mean.columns = [label.replace(' - ', '\n') for label in cocontraction_labels]
-
-# Prepare data for heatmap - OA
-oa_mean = cocontraction_df_oa.groupby('success')[cocontraction_columns].mean()
-oa_mean.index = ['Non-Success', 'Success']
-oa_mean.columns = [label.replace(' - ', '\n') for label in cocontraction_labels]
-
-# YA heatmap
-sns.heatmap(ya_mean.T, annot=True, fmt='.3f', cmap='YlOrRd', ax=axes[0], cbar_kws={'label': 'Mean Peak'})
-axes[0].set_title('Young Adults', fontweight='bold')
-axes[0].set_xlabel('')
-axes[0].set_ylabel('Muscle Pair')
-
-# OA heatmap
-sns.heatmap(oa_mean.T, annot=True, fmt='.3f', cmap='YlOrRd', ax=axes[1], cbar_kws={'label': 'Mean Peak'})
-axes[1].set_title('Older Adults', fontweight='bold')
-axes[1].set_xlabel('')
-axes[1].set_ylabel('')
-
-plt.tight_layout()
-plt.savefig('./plots/cocontraction_heatmap_comparison.png', dpi=300, bbox_inches='tight')
-# plt.show()
 # %% Time series plots of EMG signals between OA and YA groups
 subjects = load_subjects_pickle("subjects_cache.pkl")
 # %%
@@ -733,7 +722,7 @@ for idx in range(n_channels, len(axes)):
     fig.delaxes(axes[idx])
 
 plt.tight_layout()
-plt.savefig('./plots/emg_timeseries_mean_CI_YA_vs_OA.png', dpi=300, bbox_inches='tight')
+plt.savefig(f'{SAVE_DIR}/emg_timeseries_mean_CI_YA_vs_OA.png', dpi=300, bbox_inches='tight')
 # plt.show()
 
 #%% Plot mean time series with 95% CI for each EMG channel (YA: success vs non-success)
@@ -801,7 +790,7 @@ for idx in range(n_channels, len(axes)):
     fig.delaxes(axes[idx])
 
 plt.tight_layout()
-plt.savefig('./plots/emg_timeseries_mean_CI_YA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
+plt.savefig(f'{SAVE_DIR}/emg_timeseries_mean_CI_YA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
 # plt.show()
 
 #%% Plot mean time series with 95% CI for each EMG channel (OA: success vs non-success)
@@ -858,7 +847,7 @@ for idx in range(n_channels, len(axes)):
     fig.delaxes(axes[idx])
 
 plt.tight_layout()
-plt.savefig('./plots/emg_timeseries_mean_CI_OA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
+plt.savefig(f'{SAVE_DIR}/emg_timeseries_mean_CI_OA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
 # plt.show()
 
 # %%

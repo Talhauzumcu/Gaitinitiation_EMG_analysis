@@ -196,11 +196,13 @@ def get_cocontraction(emg1, emg2):
     emg1[np.isnan(emg1)] = 0  # Remove NaNs
     rectified_signal1 = np.power(emg1, 2)
     smoothed_signal1 = sp.filters.low_pass(rectified_signal1, cutoff_freq=6, sampling_rate=2000, order=2)
+    smoothed_signal1 = np.maximum(smoothed_signal1, 0)  # Ensure no negative values after filtering
     normalized_signal1 = normalize_emg(smoothed_signal1)
 
     emg2[np.isnan(emg2)] = 0  # Remove NaNs
     rectified_signal2 = np.power(emg2, 2)
     smoothed_signal2 = sp.filters.low_pass(rectified_signal2, cutoff_freq=6, sampling_rate=2000, order=2)
+    smoothed_signal2 = np.maximum(smoothed_signal2, 0)  # Ensure no negative values after filtering
     normalized_signal2 = normalize_emg(smoothed_signal2)
 
     #Calculate cocontraction
