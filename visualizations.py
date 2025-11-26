@@ -850,4 +850,61 @@ plt.tight_layout()
 plt.savefig(f'{SAVE_DIR}/emg_timeseries_mean_CI_OA_success_vs_non_success.png', dpi=300, bbox_inches='tight')
 # plt.show()
 
+# %% AVERAGE ON OFF SIGNAL PLOTS FOR YA AND OA
+on_off_df = pd.read_csv('emg_on_off_signals_START_pre_green_END_frontalpeak.csv')
+on_off_df = on_off_df[(on_off_df['reaction_time'] > 0) & (on_off_df['reaction_time'] < 1000)]
+time_cols = [col for col in on_off_df.columns if col.startswith('Time_')]
+ya_means = on_off_df[on_off_df['category'] == 'YA'].groupby('emg_channel')[time_cols].mean()
+oa_means = on_off_df[on_off_df['category'] == 'OA'].groupby('emg_channel')[time_cols].mean()
+
+#%%
+def add_spacing(data, spacing=1):
+    """Insert white (0) rows between each EMG channel row"""
+    n_channels, n_timepoints = data.shape
+    # Create new array with spacing rows (filled with NaN to show as white)
+    spaced_data = np.full((n_channels + (n_channels - 1) * spacing, n_timepoints), np.nan)
+    for i in range(n_channels):
+        spaced_data[i * (spacing + 1), :] = data[i, :]
+    return spaced_data
+# %%
+fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+
+spacing = 1  # Number of white rows between channels
+# YA group plot
+ya_data = ya_means.values
+ya_spaced = add_spacing(ya_data, spacing)
+ax1 = axes[0]
+im1 = ax1.imshow(ya_spaced, cmap='gray_r', aspect='auto', vmin=0, vmax=1, interpolation='nearest')
+# Adjust yticks to account for spacing
+ytick_positions = [i * (spacing + 1) for i in range(len(ya_means.index))]
+ax1.set_yticks(ytick_positions)
+ax1.set_yticklabels(ya_means.index)
+ax1.set_xlabel('Time (%)')
+ax1.set_ylabel('EMG Channel')
+ax1.set_title('YA Group - Mean EMG On/Off')
+ax1.set_xticks(np.linspace(0, ya_data.shape[1]-1, 6))
+ax1.set_xticklabels(['0', '20', '40', '60', '80', '100'])
+ax1.grid(False)
+
+# OA group plot
+oa_data = oa_means.values
+oa_spaced = add_spacing(oa_data, spacing)
+ax2 = axes[1]
+im2 = ax2.imshow(oa_spaced, cmap='gray_r', aspect='auto', vmin=0, vmax=1, interpolation='nearest')
+ytick_positions = [i * (spacing + 1) for i in range(len(oa_means.index))]
+ax2.set_yticks(ytick_positions)
+ax2.set_yticklabels(oa_means.index)
+ax2.set_xlabel('Time (%)')
+ax2.set_ylabel('EMG Channel')
+ax2.set_title('OA Group - Mean EMG On/Off')
+ax2.set_xticks(np.linspace(0, oa_data.shape[1]-1, 6))
+ax2.set_xticklabels(['0', '20', '40', '60', '80', '100'])
+ax2.grid(False)
+
+# Add colorbars
+plt.colorbar(im1, ax=ax1, label='Mean On pct')
+plt.colorbar(im2, ax=ax2, label='Mean On pct')
+
+plt.tight_layout()
+plt.show()
 # %%
