@@ -93,7 +93,7 @@ for subject in subjects:
             emg.on_off_signal = on_off_signal
 
 #%% Slice Resample and save the on off signals for further analysis 
-output_dir = Path('emg_on_off_signals.csv')
+output_dir = Path('emg_on_off_signals_START_pre_green_END_frontalpeak.csv')
 
 with open(output_dir, 'w', newline='') as csvfile:
     csvwriter = csv.writer(csvfile)
