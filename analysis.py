@@ -88,9 +88,36 @@ analog_fs = 2000
 for subject in subjects:
     for name, trial in subject.trials.items():
         for emg in trial.emgs.values():
-            emg_signal = emg.get_data()
+            emg_signal = emg.get_raw_data()
             on_off_signal = find_emg_on_off(emg_signal, analog_fs, trial.events)
             emg.on_off_signal = on_off_signal
+
+#%% Slice Resample and save the on off signals for further analysis 
+output_dir = Path('emg_on_off_signals.csv')
+
+with open(output_dir, 'w', newline='') as csvfile:
+    csvwriter = csv.writer(csvfile)
+    header = ['trial_name', 'subject_id', 'category', 'success', 'latency', 'reaction_time', 'emg_channel'] + [f'Time_{i}' for i in range(100)] 
+    csvwriter.writerow(header)
+    for subject in subjects:
+        for name, trial in subject.trials.items():
+            for emg in trial.emgs.values():
+                try:
+                    reaction_time = ((trial.events['CoP_onset'] - trial.events['green']) / analog_fs) * 1000 # in milliseconds
+                    latency = 'early' if trial.early else 'late'
+                    category = 'YA' if subject.is_young else 'OA'
+                    on_off_signal = emg.on_off_signal
+                    # Slice from 0.2s before green cue to .2s after frontal peak
+                    start_idx = trial.events['green'] - int(0.2 * analog_fs)
+                    end_idx = trial.events['frontal_peak'] + int(0.2 * analog_fs)
+                    sliced_signal = on_off_signal[start_idx:end_idx]
+                    # Resample to fixed length (100 samples)
+                    resampled_signal = sliced_signal[np.linspace(0, len(sliced_signal) - 1, 100).astype(int)]
+                    # Write to CSV
+                    row = [trial.trial_name, subject.subject_id, category, trial.success, latency, reaction_time, emg.name] + resampled_signal.tolist()
+                    csvwriter.writerow(row)
+                except Exception as e:
+                    print(f"Error saving on/off signal for {subject.subject_id} {trial.trial_name} {emg.name}: {e}")
 
 #%%Plot emg On off signals for verification
 for subject in subjects:
