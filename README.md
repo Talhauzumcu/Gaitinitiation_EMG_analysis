@@ -286,20 +286,93 @@ cocontraction_percentage = (2 * common_area / total_area) * 100
 
 ## Visualizations
 
-The `visualizations.py` script generates:
+The `visualizations.py` script generates an extensive set of plots saved to the `./plots` directory. Data preprocessing includes outlier removal using z-score threshold (±3 SD) and reaction time filtering (0-1000 ms).
 
-- **Amplitude Comparisons**: Boxplots with jittered data points comparing:
-  - Success vs. non-success trials
-  - Young vs. older adults
-  - Early vs. late latency conditions
+### 1. EMG Amplitude Comparisons (Boxplots with Jittered Points)
 
-- **Muscle Activation Timing Plots**: Horizontal bar charts showing:
-  - On/off periods for each muscle
-  - Event markers (green cue, CoP onset, stop signal, peaks)
+| Plot | Comparison | File |
+|------|------------|------|
+| YA Success vs Non-Success | Mean amplitude across 5 time windows | `emg_amplitude_YA_success_vs_non_success.png` |
+| OA Success vs Non-Success | Mean amplitude across 5 time windows | `emg_amplitude_OA_success_vs_non_success.png` |
+| OA vs YA | Age group comparison | `emg_amplitude_OA_vs_YA.png` |
 
-- **Co-contraction Plots**: EMG traces with shaded overlap regions
+### 2. Integrated EMG (iEMG) Comparisons (Violin Plots + Strip Plots)
 
-All plots are saved to the `./plots` directory.
+| Plot | Comparison | File |
+|------|------------|------|
+| YA Success vs Non-Success | iEMG distribution | `iemg_YA_success_vs_non_success.png` |
+| OA Success vs Non-Success | iEMG distribution | `iemg_OA_success_vs_non_success.png` |
+| OA vs YA | Age group comparison | `iemg_OA_vs_YA.png` |
+
+### 3. Average Peak Amplitude Comparisons (Bar Plots + Strip Plots)
+
+| Plot | Comparison | File |
+|------|------------|------|
+| YA Success vs Non-Success | Top-10 peak average | `average_peaks_YA_success_vs_non_success.png` |
+| OA Success vs Non-Success | Top-10 peak average | `average_peaks_OA_success_vs_non_success.png` |
+| OA vs YA | Age group comparison | `average_peaks_OA_vs_YA.png` |
+
+### 4. Muscle Co-contraction Comparisons
+
+Two visualization types for each co-contraction pair across 3 time intervals:
+
+**Boxplot versions:**
+| Plot | File |
+|------|------|
+| YA Success vs Non-Success | `cocontraction_YA_success_vs_non_success.png` |
+| OA Success vs Non-Success | `cocontraction_OA_success_vs_non_success.png` |
+| OA vs YA | `cocontraction_OA_vs_YA.png` |
+
+**Violin plot versions:**
+| Plot | File |
+|------|------|
+| YA Success vs Non-Success | `cocontraction_violin_YA_success_vs_non_success.png` |
+| OA Success vs Non-Success | `cocontraction_violin_OA_success_vs_non_success.png` |
+| OA vs YA | `cocontraction_violin_OA_vs_YA.png` |
+
+### 5. EMG Time Series Plots (Mean ± 95% CI)
+
+Time-normalized EMG envelope from CoP onset to frontal peak (resampled to 200 points):
+
+| Plot | Comparison | File |
+|------|------------|------|
+| YA vs OA | Age group comparison | `emg_timeseries_mean_CI_YA_vs_OA.png` |
+| YA: Success vs Non-Success | Within young adults | `emg_timeseries_mean_CI_YA_success_vs_non_success.png` |
+| OA: Success vs Non-Success | Within older adults | `emg_timeseries_mean_CI_OA_success_vs_non_success.png` |
+
+### 6. EMG On/Off Signal Heatmaps
+
+Binary activation patterns (grayscale heatmaps) showing proportion of time each muscle is "on":
+
+| Plot | Description | File |
+|------|-------------|------|
+| YA vs OA (side-by-side) | Overall mean activation | `emg_on_off_signals_YA_vs_OA.png` |
+| Early/Late × YA/OA | 2×2 grid by latency condition | `emg_on_off_signals_YA_vs_OA_wlatency.png` |
+| YA vs OA (interleaved) | Direct comparison per muscle | `emg_on_off_signals_YA_vs_OA_interleaved.png` |
+| Early/Late interleaved | Latency comparison | `emg_on_off_signals_YA_vs_OA_wlatency_interleaved.png` |
+
+### 7. EMG On/Off Timing Boxplots
+
+Horizontal boxplots showing onset/offset timing relative to green cue, with reference lines for mean CoP onset and frontal peak:
+
+| Plot | Comparison | File |
+|------|------------|------|
+| YA vs OA | Age group timing differences | `emg_on_off_boxplots_YA_vs_OA.png` |
+| Success vs Failure (by group) | Within YA and OA separately | `emg_on_off_boxplots_success_vs_failure_by_group.png` |
+
+### Visualization Summary
+
+| Category | Number of Plots |
+|----------|-----------------|
+| Amplitude comparisons | 3 |
+| iEMG comparisons | 3 |
+| Peak amplitude comparisons | 3 |
+| Co-contraction (boxplot) | 3 |
+| Co-contraction (violin) | 3 |
+| Time series with CI | 3 |
+| On/Off heatmaps | 4 |
+| On/Off timing boxplots | 2 |
+| **Total** | **24** |
 
 ---
 
