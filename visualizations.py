@@ -10,10 +10,11 @@ sns.set_style("whitegrid")
 sns.set_palette("husl")
 plt.rcParams['figure.figsize'] = (12, 6)
 
-#%%
 SAVE_DIR = f'./plots'
 if not os.path.exists(SAVE_DIR):
     os.makedirs(SAVE_DIR)
+#%%
+
     
 df = pd.read_csv('emg_analysis_results.csv')
 df = df[(df['reaction_time(ms)'] > 0) & (df['reaction_time(ms)'] < 1000)]
@@ -856,6 +857,10 @@ on_off_df = on_off_df[(on_off_df['reaction_time'] > 0) & (on_off_df['reaction_ti
 time_cols = [col for col in on_off_df.columns if col.startswith('Time_')]
 ya_means = on_off_df[on_off_df['category'] == 'YA'].groupby('emg_channel')[time_cols].mean()
 oa_means = on_off_df[on_off_df['category'] == 'OA'].groupby('emg_channel')[time_cols].mean()
+ya_early_means = on_off_df[(on_off_df['category'] == 'YA') & (on_off_df['latency'] == 'early')].groupby('emg_channel')[time_cols].mean()
+oa_early_means = on_off_df[(on_off_df['category'] == 'OA') & (on_off_df['latency'] == 'early')].groupby('emg_channel')[time_cols].mean()
+ya_late_means = on_off_df[(on_off_df['category'] == 'YA') & (on_off_df['latency'] == 'late')].groupby('emg_channel')[time_cols].mean()
+oa_late_means = on_off_df[(on_off_df['category'] == 'OA') & (on_off_df['latency'] == 'late')].groupby('emg_channel')[time_cols].mean()
 
 #%%
 def add_spacing(data, spacing=1):
@@ -866,7 +871,7 @@ def add_spacing(data, spacing=1):
     for i in range(n_channels):
         spaced_data[i * (spacing + 1), :] = data[i, :]
     return spaced_data
-# %%
+# %% OVERALL MEAN ON OFF SIGNAL PLOTS FOR YA AND OA
 fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
 spacing = 1  # Number of white rows between channels
@@ -902,9 +907,463 @@ ax2.set_xticklabels(['0', '20', '40', '60', '80', '100'])
 ax2.grid(False)
 
 # Add colorbars
-plt.colorbar(im1, ax=ax1, label='Mean On pct')
-plt.colorbar(im2, ax=ax2, label='Mean On pct')
+plt.colorbar(im1, ax=ax1, label='Mean On/off pct')
+plt.colorbar(im2, ax=ax2, label='Mean On/off pct')
 
 plt.tight_layout()
+plt.savefig(f'{SAVE_DIR}/emg_on_off_signals_YA_vs_OA.png', dpi=300, bbox_inches='tight')
 plt.show()
+# %%Mean of on off signals for early and late latency trials
+fig, axes = plt.subplots(2, 2, figsize=(14, 6))
+
+spacing = 1  # Number of white rows between channels
+# YA early group plot
+ya_early_data = ya_early_means.values
+ya_spaced = add_spacing(ya_early_data, spacing)
+ax1 = axes[0, 0]
+im1 = ax1.imshow(ya_spaced, cmap='gray_r', aspect='auto', vmin=0, vmax=1, interpolation='nearest')
+# Adjust yticks to account for spacing
+ytick_positions = [i * (spacing + 1) for i in range(len(ya_early_means.index))]
+ax1.set_yticks(ytick_positions)
+ax1.set_yticklabels(ya_early_means.index)
+ax1.set_xlabel('Time (%)')
+ax1.set_ylabel('EMG Channel')
+ax1.set_title('YA Group - Mean EMG On/Off Early')
+ax1.set_xticks(np.linspace(0, ya_early_data.shape[1]-1, 6))
+ax1.set_xticklabels(['0', '20', '40', '60', '80', '100'])
+ax1.grid(False)
+
+# OA early group plot
+oa_early_data = oa_early_means.values
+oa_spaced = add_spacing(oa_early_data, spacing)
+ax2 = axes[0, 1]
+im2 = ax2.imshow(oa_spaced, cmap='gray_r', aspect='auto', vmin=0, vmax=1, interpolation='nearest')
+ytick_positions = [i * (spacing + 1) for i in range(len(oa_early_means.index))]
+ax2.set_yticks(ytick_positions)
+ax2.set_yticklabels(oa_early_means.index)
+ax2.set_xlabel('Time (%)')
+ax2.set_ylabel('EMG Channel')
+ax2.set_title('OA Group - Mean EMG On/Off early')
+ax2.set_xticks(np.linspace(0, oa_early_data.shape[1]-1, 6))
+ax2.set_xticklabels(['0', '20', '40', '60', '80', '100'])
+ax2.grid(False)
+
+# YA late group plot
+ya_late_data = ya_late_means.values
+ya_spaced = add_spacing(ya_late_data, spacing)
+ax1 = axes[1, 0]
+im1 = ax1.imshow(ya_spaced, cmap='gray_r', aspect='auto', vmin=0, vmax=1, interpolation='nearest')
+# Adjust yticks to account for spacing
+ytick_positions = [i * (spacing + 1) for i in range(len(ya_late_means.index))]
+ax1.set_yticks(ytick_positions)
+ax1.set_yticklabels(ya_late_means.index)
+ax1.set_xlabel('Time (%)')
+ax1.set_ylabel('EMG Channel')
+ax1.set_title('YA Group - Mean EMG On/Off Late')
+ax1.set_xticks(np.linspace(0, ya_late_data.shape[1]-1, 6))
+ax1.set_xticklabels(['0', '20', '40', '60', '80', '100'])
+ax1.grid(False)
+
+# OA late group plot
+oa_late_data = oa_late_means.values
+oa_spaced = add_spacing(oa_late_data, spacing)
+ax2 = axes[1, 1]
+im2 = ax2.imshow(oa_spaced, cmap='gray_r', aspect='auto', vmin=0, vmax=1, interpolation='nearest')
+ytick_positions = [i * (spacing + 1) for i in range(len(oa_late_means.index))]
+ax2.set_yticks(ytick_positions)
+ax2.set_yticklabels(oa_late_means.index)
+ax2.set_xlabel('Time (%)')
+ax2.set_ylabel('EMG Channel')
+ax2.set_title('OA Group - Mean EMG On/Off Late')
+ax2.set_xticks(np.linspace(0, oa_late_data.shape[1]-1, 6))
+ax2.set_xticklabels(['0', '20', '40', '60', '80', '100'])
+ax2.grid(False)
+
+
+plt.tight_layout()
+plt.savefig(f'{SAVE_DIR}/emg_on_off_signals_YA_vs_OA_wlatency.png', dpi=300, bbox_inches='tight')
+plt.show()
+
+# %%
+def add_spacing_interleaved(ya_data, oa_data, spacing=1):
+    """Interleave YA and OA rows for each EMG channel with spacing between channel groups"""
+    n_channels, n_timepoints = ya_data.shape
+    # Each channel group has: YA row, OA row, then spacing rows
+    rows_per_channel = 2 + spacing
+    total_rows = n_channels * rows_per_channel - spacing  # No spacing after last channel
+    
+    spaced_data = np.full((total_rows, n_timepoints), np.nan)
+    
+    for i in range(n_channels):
+        base_row = i * rows_per_channel
+        spaced_data[base_row, :] = ya_data[i, :]      # YA row
+        spaced_data[base_row + 1, :] = oa_data[i, :]  # OA row
+        # spacing rows remain NaN (white)
+    
+    return spaced_data
+
+#%% interlaved with latency
+fig, axes = plt.subplots(2, 1, figsize=(12, 10))
+spacing = 1
+
+# Early: Interleaved YA vs OA
+ya_early_data = ya_early_means.values
+oa_early_data = oa_early_means.values
+interleaved_early = add_spacing_interleaved(ya_early_data, oa_early_data, spacing)
+
+ax1 = axes[0]
+im1 = ax1.imshow(interleaved_early, cmap='gray_r', aspect='auto', vmin=0, vmax=1, interpolation='nearest')
+
+# Set yticks at channel groups, label with channel names
+rows_per_channel = 2 + spacing
+ytick_positions = [i * rows_per_channel + 0.5 for i in range(len(ya_early_means.index))]  # Center between YA/OA
+ax1.set_yticks(ytick_positions)
+ax1.set_yticklabels(ya_early_means.index)
+ax1.set_xlabel('Time (%)')
+ax1.set_ylabel('EMG Channel')
+ax1.set_title('Early - YA (top) vs OA (bottom) per channel')
+ax1.set_xticks(np.linspace(0, ya_early_data.shape[1]-1, 6))
+ax1.set_xticklabels(['0', '20', '40', '60', '80', '100'])
+ax1.grid(False)
+
+# Late: Interleaved YA vs OA
+ya_late_data = ya_late_means.values
+oa_late_data = oa_late_means.values
+interleaved_late = add_spacing_interleaved(ya_late_data, oa_late_data, spacing)
+
+ax2 = axes[1]
+im2 = ax2.imshow(interleaved_late, cmap='gray_r', aspect='auto', vmin=0, vmax=1, interpolation='nearest')
+
+ytick_positions = [i * rows_per_channel + 0.5 for i in range(len(ya_late_means.index))]
+ax2.set_yticks(ytick_positions)
+ax2.set_yticklabels(ya_late_means.index)
+ax2.set_xlabel('Time (%)')
+ax2.set_ylabel('EMG Channel')
+ax2.set_title('Late - YA (top) vs OA (bottom) per channel')
+ax2.set_xticks(np.linspace(0, ya_late_data.shape[1]-1, 6))
+ax2.set_xticklabels(['0', '20', '40', '60', '80', '100'])
+ax2.grid(False)
+
+plt.tight_layout()
+plt.savefig(f'{SAVE_DIR}/emg_on_off_signals_YA_vs_OA_wlatency_interleaved.png', dpi=300, bbox_inches='tight')
+plt.show()
+
+#%% interlaved withiout latency
+fig, ax = plt.subplots(1, 1, figsize=(12, 10))
+spacing = 1
+
+# Early: Interleaved YA vs OA
+ya_data = ya_means.values
+oa_data = oa_means.values
+interleaved = add_spacing_interleaved(ya_data, oa_data, spacing)
+im = ax.imshow(interleaved, cmap='gray_r', aspect='auto', vmin=0, vmax=1, interpolation='nearest')
+
+# Set yticks at channel groups, label with channel names
+rows_per_channel = 2 + spacing
+ytick_positions = [i * rows_per_channel + 0.5 for i in range(len(ya_means.index))]  # Center between YA/OA
+ax.set_yticks(ytick_positions)
+ax.set_yticklabels(ya_means.index)
+ax.set_xlabel('Time (%)')
+ax.set_ylabel('EMG Channel')
+ax.set_title('Early - YA (top) vs OA (bottom) per channel')
+ax.set_xticks(np.linspace(0, ya_data.shape[1]-1, 6))
+ax.set_xticklabels(['0', '20', '40', '60', '80', '100'])
+ax.grid(False)
+
+plt.colorbar(im, ax=ax, label='Mean On/off pct')
+plt.tight_layout()
+plt.savefig(f'{SAVE_DIR}/emg_on_off_signals_YA_vs_OA_interleaved.png', dpi=300, bbox_inches='tight')
+plt.show()
+
+#%% EMG On/Off Horizontal Boxplots - YA vs OA comparison (Green signal as reference)
+csv_path='emg_on_off_green_absolute.csv'
+
+# Load data
+df = pd.read_csv(csv_path)
+df = df[(df['reaction_time'] > 0) & (df['reaction_time'] < 1000)]
+# Calculate times relative to green signal
+df['on_relative'] = df['on'] - df['green']
+df['off_relative'] = df['off'] - df['green']
+df['cop_onset_relative'] = df['cop_onset'] - df['green']
+df['frontal_peak_relative'] = df['frontal_peak'] - df['green']
+
+# Get unique EMG channels and sort them
+emg_channels = df['emg_channel'].unique()
+emg_channels = sorted(emg_channels)
+
+# Create short names for EMG channels
+channel_short_names = {
+    '01_ri_soleus': 'R Sol',
+    '02_ri_gastroc_med': 'R GMed',
+    '03_ri_tib_ant': 'R TA',
+    '06_le_tib_ant': 'L TA',
+    '07_le_soleus': 'L Sol',
+    '08_le_gastroc_med': 'L GMed'
+}
+
+# Set up the figure
+fig, ax = plt.subplots(figsize=(14, 10))
+
+# Colors for YA and OA
+colors = {'YA': '#3498db', 'OA': '#e74c3c'}  # Blue for YA, Red for OA
+
+# Position parameters
+n_channels = len(emg_channels)
+channel_height = 1.0  # Height allocated per channel
+box_height = 0.35     # Height of each box
+gap_between_categories = 0.05  # Gap between YA and OA boxes
+
+y_positions = []
+y_labels = []
+
+# Stats for annotations
+stats_data = []
+
+for i, channel in enumerate(emg_channels):
+    channel_data = df[df['emg_channel'] == channel]
+    base_y = (n_channels - 1 - i) * channel_height  # Reverse order so first channel is at top
+    
+    for cat_idx, category in enumerate(['YA', 'OA']):
+        cat_data = channel_data[channel_data['category'] == category]
+        
+        # Calculate y position for this category
+        if cat_idx == 0:  # YA - upper position
+            y_pos = base_y + gap_between_categories + box_height/2
+        else:  # OA - lower position
+            y_pos = base_y - gap_between_categories - box_height/2
+        
+        # Get on and off data
+        on_data = cat_data['on_relative'].dropna()
+        off_data = cat_data['off_relative'].dropna()
+        
+        # Plot ON boxplot (filled box)
+        if len(on_data) > 0:
+            bp_on = ax.boxplot([on_data], positions=[y_pos + 0.08], vert=False, 
+                                widths=box_height * 0.4, patch_artist=True,
+                                boxprops=dict(facecolor=colors[category], alpha=0.7, linewidth=1.5),
+                                medianprops=dict(color='black', linewidth=2),
+                                whiskerprops=dict(color=colors[category], linewidth=1.5),
+                                capprops=dict(color=colors[category], linewidth=1.5),
+                                flierprops=dict(marker='o', markerfacecolor=colors[category], 
+                                                markersize=3, alpha=0.5))
+            
+            # Add median annotation for ON
+            # median_on = np.median(on_data) * 1000  # Convert to ms
+            # ax.text(np.median(on_data), y_pos + 0.08 + box_height * 0.25, 
+            #         f'{int(median_on)}', ha='center', va='bottom', fontsize=8, fontweight='bold')
+        
+        # Plot OFF boxplot (unfilled box with dashed lines)
+        if len(off_data) > 0:
+            bp_off = ax.boxplot([off_data], positions=[y_pos - 0.08], vert=False,
+                                widths=box_height * 0.4, patch_artist=True,
+                                boxprops=dict(facecolor='white', edgecolor=colors[category], 
+                                                linewidth=1.5, linestyle='--'),
+                                medianprops=dict(color='black', linewidth=2),
+                                whiskerprops=dict(color=colors[category], linewidth=1.5, linestyle='--'),
+                                capprops=dict(color=colors[category], linewidth=1.5),
+                                flierprops=dict(marker='o', markerfacecolor='white', 
+                                                markeredgecolor=colors[category], markersize=3, alpha=0.5))
+            
+            # Add median annotation for OFF
+            # median_off = np.median(off_data) * 1000  # Convert to ms
+            # ax.text(np.median(off_data), y_pos - 0.08 - box_height * 0.25,
+            #         f'{int(median_off)}', ha='center', va='top', fontsize=8, fontweight='bold')
+    
+    # Store y position for labels
+    y_positions.append(base_y)
+    short_name = channel_short_names.get(channel, channel)
+    y_labels.append(short_name)
+
+# Calculate mean event times for reference lines
+mean_cop_onset = df['cop_onset_relative'].mean()
+mean_frontal_peak = df['frontal_peak_relative'].mean()
+
+# Add vertical reference lines
+ax.axvline(x=0, color='green', linewidth=2, linestyle='-', label='Green Cue', zorder=0)
+ax.axvline(x=mean_cop_onset, color='red', linewidth=2, linestyle='--', label=f'CoP Onset (mean)', zorder=0)
+ax.axvline(x=mean_frontal_peak, color='purple', linewidth=2, linestyle=':', label=f'Frontal Peak (mean)', zorder=0)
+
+# Set y-axis
+ax.set_yticks(y_positions)
+ax.set_yticklabels(y_labels, fontsize=12, fontweight='bold')
+
+# Set x-axis
+ax.set_xlabel('Time relative to Green Cue (s)', fontsize=12, fontweight='bold')
+ax.set_xlim(-0.5, 2.0)
+
+# Add grid
+ax.grid(axis='x', alpha=0.3, linestyle='-')
+ax.set_axisbelow(True)
+
+# Title
+ax.set_title('EMG On/Off Detection Times: YA vs OA\n(Relative to Green Cue)', 
+                fontsize=14, fontweight='bold')
+
+# Create custom legend
+from matplotlib.patches import Patch
+from matplotlib.lines import Line2D
+
+legend_elements = [
+    Patch(facecolor=colors['YA'], edgecolor=colors['YA'], alpha=0.7, label='YA - Onset'),
+    Patch(facecolor='white', edgecolor=colors['YA'], linestyle='--', label='YA - Offset'),
+    Patch(facecolor=colors['OA'], edgecolor=colors['OA'], alpha=0.7, label='OA - Onset'),
+    Patch(facecolor='white', edgecolor=colors['OA'], linestyle='--', label='OA - Offset'),
+    Line2D([0], [0], color='green', linewidth=2, linestyle='-', label='Green Cue'),
+    Line2D([0], [0], color='red', linewidth=2, linestyle='--', label='CoP Onset (mean)'),
+    Line2D([0], [0], color='purple', linewidth=2, linestyle=':', label='Frontal Peak (mean)')
+]
+ax.legend(handles=legend_elements, loc='upper right', fontsize=10)
+
+# Adjust layout
+plt.tight_layout()
+
+# Save figure
+plt.savefig(f'{SAVE_DIR}/emg_on_off_boxplots_YA_vs_OA.png', dpi=300, bbox_inches='tight')
+plt.show()
+
+#%% EMG On/Off Horizontal Boxplots - Success vs Failure comparison within YA and OA (Two columns)
+csv_path='emg_on_off_green_absolute.csv'
+
+# Load data
+df = pd.read_csv(csv_path)
+df = df[(df['reaction_time'] > 0) & (df['reaction_time'] < 1000)]
+# Calculate times relative to green signal
+df['on_relative'] = df['on'] - df['green']
+df['off_relative'] = df['off'] - df['green']
+df['cop_onset_relative'] = df['cop_onset'] - df['green']
+df['frontal_peak_relative'] = df['frontal_peak'] - df['green']
+
+# Get unique EMG channels and sort them
+emg_channels = df['emg_channel'].unique()
+emg_channels = sorted(emg_channels)
+
+# Create short names for EMG channels
+channel_short_names = {
+    '01_ri_soleus': 'R Sol',
+    '02_ri_gastroc_med': 'R GMed',
+    '03_ri_tib_ant': 'R TA',
+    '06_le_tib_ant': 'L TA',
+    '07_le_soleus': 'L Sol',
+    '08_le_gastroc_med': 'L GMed'
+}
+
+# Set up the figure with two columns
+fig, axes = plt.subplots(1, 2, figsize=(20, 10), sharey=True)
+
+# Colors for Success and Failure
+colors = {'Success': '#2ecc71', 'Failure': '#e74c3c'}  # Green for Success, Red for Failure
+
+# Position parameters
+n_channels = len(emg_channels)
+channel_height = 1.0  # Height allocated per channel
+box_height = 0.35     # Height of each box
+gap_between_categories = 0.05  # Gap between Success and Failure boxes
+
+# Calculate mean event times for reference lines (for each category)
+categories = ['YA', 'OA']
+category_titles = {'YA': 'Young Adults (YA)', 'OA': 'Older Adults (OA)'}
+
+for ax_idx, category in enumerate(categories):
+    ax = axes[ax_idx]
+    df_cat = df[df['category'] == category]
+    
+    y_positions = []
+    y_labels = []
+    
+    for i, channel in enumerate(emg_channels):
+        channel_data = df_cat[df_cat['emg_channel'] == channel]
+        base_y = (n_channels - 1 - i) * channel_height  # Reverse order so first channel is at top
+        
+        for success_idx, success_val in enumerate([True, False]):
+            success_label = 'Success' if success_val else 'Failure'
+            success_data = channel_data[channel_data['success'] == success_val]
+            
+            # Calculate y position for this success condition
+            if success_idx == 0:  # Success - upper position
+                y_pos = base_y + gap_between_categories + box_height/2
+            else:  # Failure - lower position
+                y_pos = base_y - gap_between_categories - box_height/2
+            
+            # Get on and off data
+            on_data = success_data['on_relative'].dropna()
+            off_data = success_data['off_relative'].dropna()
+            
+            # Plot ON boxplot (filled box)
+            if len(on_data) > 0:
+                bp_on = ax.boxplot([on_data], positions=[y_pos + 0.08], vert=False, 
+                                    widths=box_height * 0.4, patch_artist=True,
+                                    boxprops=dict(facecolor=colors[success_label], alpha=0.7, linewidth=1.5),
+                                    medianprops=dict(color='black', linewidth=2),
+                                    whiskerprops=dict(color=colors[success_label], linewidth=1.5),
+                                    capprops=dict(color=colors[success_label], linewidth=1.5),
+                                    flierprops=dict(marker='o', markerfacecolor=colors[success_label], 
+                                                    markersize=3, alpha=0.5))
+            
+            # Plot OFF boxplot (unfilled box with dashed lines)
+            if len(off_data) > 0:
+                bp_off = ax.boxplot([off_data], positions=[y_pos - 0.08], vert=False,
+                                    widths=box_height * 0.4, patch_artist=True,
+                                    boxprops=dict(facecolor='white', edgecolor=colors[success_label], 
+                                                    linewidth=1.5, linestyle='--'),
+                                    medianprops=dict(color='black', linewidth=2),
+                                    whiskerprops=dict(color=colors[success_label], linewidth=1.5, linestyle='--'),
+                                    capprops=dict(color=colors[success_label], linewidth=1.5),
+                                    flierprops=dict(marker='o', markerfacecolor='white', 
+                                                    markeredgecolor=colors[success_label], markersize=3, alpha=0.5))
+        
+        # Store y position for labels
+        y_positions.append(base_y)
+        short_name = channel_short_names.get(channel, channel)
+        y_labels.append(short_name)
+    
+    # Calculate mean event times for reference lines (within this category)
+    mean_cop_onset = df_cat['cop_onset_relative'].mean()
+    mean_frontal_peak = df_cat['frontal_peak_relative'].mean()
+    
+    # Add vertical reference lines
+    ax.axvline(x=0, color='green', linewidth=2, linestyle='-', label='Green Cue', zorder=0)
+    ax.axvline(x=mean_cop_onset, color='red', linewidth=2, linestyle='--', label=f'CoP Onset (mean)', zorder=0)
+    ax.axvline(x=mean_frontal_peak, color='purple', linewidth=2, linestyle=':', label=f'Frontal Peak (mean)', zorder=0)
+
+    # Set y-axis
+    ax.set_yticks(y_positions)
+    ax.set_yticklabels(y_labels, fontsize=12, fontweight='bold')
+    
+    # Set x-axis
+    ax.set_xlabel('Time relative to Green Cue (s)', fontsize=12, fontweight='bold')
+    ax.set_xlim(-0.5, 2.0)
+    
+    # Add grid
+    ax.grid(axis='x', alpha=0.3, linestyle='-')
+    ax.set_axisbelow(True)
+    
+    # Title for each subplot
+    ax.set_title(f'{category_titles[category]}\nSuccess vs Failure', fontsize=14, fontweight='bold')
+
+# Create custom legend (only on the right subplot to avoid duplication)
+from matplotlib.patches import Patch
+from matplotlib.lines import Line2D
+
+legend_elements = [
+    Patch(facecolor=colors['Success'], edgecolor=colors['Success'], alpha=0.7, label='Success - Onset'),
+    Patch(facecolor='white', edgecolor=colors['Success'], linestyle='--', label='Success - Offset'),
+    Patch(facecolor=colors['Failure'], edgecolor=colors['Failure'], alpha=0.7, label='Failure - Onset'),
+    Patch(facecolor='white', edgecolor=colors['Failure'], linestyle='--', label='Failure - Offset'),
+    Line2D([0], [0], color='blue', linewidth=2, linestyle='-', label='Green Cue'),
+    Line2D([0], [0], color='orange', linewidth=2, linestyle='--', label='CoP Onset (mean)'),
+    Line2D([0], [0], color='purple', linewidth=2, linestyle=':', label='Frontal Peak (mean)')
+]
+axes[1].legend(handles=legend_elements, loc='upper right', fontsize=10)
+
+# Main title
+fig.suptitle('EMG On/Off Detection Times: Success vs Failure\n(Relative to Green Cue)', 
+             fontsize=16, fontweight='bold', y=1.02)
+
+# Adjust layout
+plt.tight_layout()
+
+# Save figure
+plt.savefig(f'{SAVE_DIR}/emg_on_off_boxplots_success_vs_failure_by_group.png', dpi=300, bbox_inches='tight')
+plt.show()
+
 # %%

@@ -236,4 +236,47 @@ for subject in subjects:
                 csvwriter.writerow(header_parts)
             csvwriter.writerow(row_data)
 
+# %%EMG on/off timings 
+output_dir = Path('emg_on_off_green_absolute.csv')
+
+with open(output_dir, 'w', newline='') as csvfile:
+    csvwriter = csv.writer(csvfile)
+    header = ['trial_name', 'subject_id', 'category', 'success', 'latency', 'reaction_time', 'emg_channel','on','off','green','cop_onset','stopsignal','post_peak','frontal_peak'] 
+    csvwriter.writerow(header)
+    for subject in subjects:
+        for name, trial in subject.trials.items():
+            for emg in trial.emgs.values():
+                try:
+                    reaction_time = ((trial.events['CoP_onset'] - trial.events['green']) / analog_fs) * 1000 # in milliseconds
+                    latency = 'early' if trial.early else 'late'
+                    category = 'YA' if subject.is_young else 'OA'
+                    on_off_signal = emg.on_off_signal
+                    # Slice from 0.2s before green cue to .2s after frontal peak
+                    start_idx = trial.events['green']
+                    end_idx = trial.events['frontal_peak'] + int(0.2 * analog_fs)
+                    sliced_on_off_signal = on_off_signal[start_idx:end_idx]
+                    # Get the events
+                    green = trial.events['green'] / analog_fs
+                    cop_onset = trial.events['CoP_onset'] / analog_fs
+                    stopsignal = trial.events['stopsignal'] / analog_fs
+                    post_peak = trial.events['post_peak'] / analog_fs
+                    frontal_peak = trial.events['frontal_peak'] / analog_fs
+                    diff_signal = np.diff(sliced_on_off_signal)
+                    first_on = np.where(diff_signal == 1)[0] / analog_fs
+                    first_off = np.where(diff_signal == -1)[0] / analog_fs
+
+                    if first_on.size > 0:
+                        on = first_on[0] + green
+                    else:
+                        on = np.nan
+                    if first_off.size > 0:
+                        off = first_off[0] + green
+                    else:
+                        off = np.nan
+
+                    row = [trial.trial_name, subject.subject_id, category, trial.success, latency, reaction_time, emg.name, on, off, green, cop_onset, stopsignal, post_peak, frontal_peak]
+                    csvwriter.writerow(row)
+                except Exception as e:
+                    print(f"Error saving on/off signal for {subject.subject_id} {trial.trial_name} {emg.name}: {e}")
+
 # %%
